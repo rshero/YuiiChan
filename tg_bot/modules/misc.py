@@ -244,7 +244,7 @@ def info(update: Update, context: CallbackContext):
         Nation_level_present = True
 
     if Nation_level_present:
-        text += ' [<a href="https://t.me/{}?start=nations">?</a>]'.format(bot.username)
+        text += ' [<a href="https://t.me/yuiichansupport/3655">?</a>]'.format(bot.username)
 
     text += "\n"
     for mod in USER_INFO:
