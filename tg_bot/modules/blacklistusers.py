@@ -6,7 +6,7 @@ from tg_bot import (
     OWNER_ID,
     SUDO_USERS,
     SUPPORT_USERS,
-    SARDEGNA_USERS,
+    TIGER_USERS,
     WHITELIST_USERS,
     dispatcher,
 )
@@ -41,7 +41,7 @@ def bl_user(update: Update, context: CallbackContext) -> str:
         return ""
 
     if user_id in BLACKLISTWHITELIST:
-        message.reply_text("No!\nNoticing Nations is my job.")
+        message.reply_text("No!\nNoticing members of Yuii Chan Club is my job.")
         return ""
 
     try:
@@ -142,7 +142,7 @@ def __user_info__(user_id):
         user_id
         in [777000, 1087968824, dispatcher.bot.id]
         + SUDO_USERS
-        + SARDEGNA_USERS
+        + TIGER_USERS
         + WHITELIST_USERS
     ):
         return ""

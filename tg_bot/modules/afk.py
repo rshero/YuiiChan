@@ -2,6 +2,7 @@ import html
 import random
 
 from telegram import Update, MessageEntity
+from telegram.ext import run_async
 from telegram.ext import Filters, CallbackContext, MessageHandler
 from telegram.error import BadRequest
 from tg_bot import dispatcher
@@ -18,14 +19,7 @@ AFK_REPLY_GROUP = 8
 
 def afk(update: Update, context: CallbackContext):
     args = update.effective_message.text.split(None, 1)
-    user = update.effective_user
-
-    if not user:  # ignore channels
-        return
-
-    if user.id in (777000, 1087968824):
-        return
-
+    afk_time = int(time.time())
     notice = ""
     if len(args) >= 2:
         reason = args[1]
@@ -35,12 +29,9 @@ def afk(update: Update, context: CallbackContext):
     else:
         reason = ""
 
-    sql.set_afk(update.effective_user.id, reason)
+    sql.set_afk(update.effective_user.id, afk_time, reason)
     fname = update.effective_user.first_name
-    try:
-        update.effective_message.reply_text("{} is now away!{}".format(fname, notice))
-    except BadRequest:
-        pass
+    update.effective_message.reply_text("{} is now away!{}".format(fname, notice))
 
 
 def no_longer_afk(update: Update, context: CallbackContext):
@@ -67,9 +58,7 @@ def no_longer_afk(update: Update, context: CallbackContext):
                 "Where is {}?\nIn the chat!",
             ]
             chosen_option = random.choice(options)
-            update.effective_message.reply_text(
-                chosen_option.format(firstname), parse_mode=None
-            )
+            update.effective_message.reply_text(chosen_option.format(firstname))
         except:
             return
 
@@ -131,27 +120,51 @@ def reply_afk(update: Update, context: CallbackContext):
 
 
 def check_afk(update, context, user_id, fst_name, userc_id):
-    if int(userc_id) == int(user_id):
-        return
-    is_afk, reason = sql.check_afk_status(user_id)
-    if is_afk:
-        if not reason:
-            res = "{} is afk".format(fst_name)
-            update.effective_message.reply_text(res, parse_mode=None)
+    if sql.is_afk(user_id):
+        user = sql.check_afk_status(user_id)
+        afk_time = sql.get_afk_time(user_id)
+        afk_since = get_readable_time((time.time() - afk_time))
+        if not user.reason:
+            if int(userc_id) == int(user_id):
+                return
+            res = "{} is afk since {}".format(fst_name, afk_since)
+            update.effective_message.reply_text(res)
         else:
-            res = "{} is afk.\nReason: <code>{}</code>".format(
-                html.escape(fst_name), html.escape(reason)
+            if int(userc_id) == int(user_id):
+                return
+            res = "{} is afk since {}\nReason: {}".format(
+                fst_name, afk_since, user.reason
             )
-            update.effective_message.reply_text(res, parse_mode="html")
+            update.effective_message.reply_text(res)
 
 
-def __gdpr__(user_id):
-    sql.rm_afk(user_id)
+def get_readable_time(seconds: int) -> str:
+    count = 0
+    ping_time = ""
+    time_list = []
+    time_suffix_list = ["s", "m", "h", "days"]
 
-from tg_bot.modules.language import gs
+    while count < 4:
+        count += 1
+        if count < 3:
+            remainder, result = divmod(seconds, 60)
+        else:
+            remainder, result = divmod(seconds, 24)
+        if seconds == 0 and remainder == 0:
+            break
+        time_list.append(int(result))
+        seconds = int(remainder)
 
-def get_help(chat):
-    return gs(chat, "afk_help")
+    for x in range(len(time_list)):
+        time_list[x] = str(time_list[x]) + time_suffix_list[x]
+    if len(time_list) == 4:
+        ping_time += time_list.pop() + ", "
+
+    time_list.reverse()
+    ping_time += ":".join(time_list)
+
+    return ping_time
+
 
 AFK_HANDLER = DisableAbleCommandHandler("afk", afk, run_async=True)
 AFK_REGEX_HANDLER = DisableAbleMessageHandler(

@@ -95,7 +95,7 @@ def import_data(update, context):
                 mod.__import_data__(str(chat.id), data)
         except Exception:
             msg.reply_text(
-                "An error occurred while recovering your data. The process failed. If you experience a problem with this, please take it to @YorkTownEagleUnion"
+                "An error occurred while recovering your data. The process failed. If you experience a problem with this, please take it to @yuiichansupport"
             )
 
             log.exception(
@@ -320,27 +320,44 @@ def export_data(update, context):
         },
     }
     baccinfo = json.dumps(backup, indent=4)
-    f = open("tg_bot{}.backup".format(chat_id), "w")
+    f = open("YuiiChan{}.backup".format(chat_id), "w")
     f.write(str(baccinfo))
     f.close()
     context.bot.sendChatAction(current_chat_id, "upload_document")
     tgl = time.strftime("%H:%M:%S - %d/%m/%Y", time.localtime(time.time()))
     context.bot.sendDocument(
         current_chat_id,
-        document=open("KigyoRobot{}.backup".format(chat_id), "rb"),
-        caption="*Successfully Exported backup:*\nChat: `{}`\nChat ID: `{}`\nOn: `{}`\n\nNote: This `tg_bot-Backup` was specially made for notes.".format(
+        document=open("YuiiChan{}.backup".format(chat_id), "rb"),
+        caption="*Successfully Exported backup:*\nChat: `{}`\nChat ID: `{}`\nOn: `{}`\n\nNote: This `YuiiChan-Backup` was specially made for notes.".format(
             chat.title, chat_id, tgl
         ),
         timeout=360,
         reply_to_message_id=msg.message_id,
         parse_mode=ParseMode.MARKDOWN,
     )
-    os.remove("KigyoRobot{}.backup".format(chat_id))  # Cleaning file
+    os.remove("YuiiChan{}.backup".format(chat_id))  # Cleaning file
+
 
 from tg_bot.modules.language import gs
 
+
 def get_help(chat):
     return gs(chat, "backup_help")
+
+
+def put_chat(chat_id, value, chat_data):
+    # print(chat_data)
+    status = value is not False
+    chat_data[chat_id] = {"backups": {"status": status, "value": value}}
+
+
+def get_chat(chat_id, chat_data):
+    # print(chat_data)
+    try:
+        return chat_data[chat_id]["backups"]
+    except KeyError:
+        return {"status": False, "value": False}
+
 
 IMPORT_HANDLER = CommandHandler("import", import_data, run_async=True)
 EXPORT_HANDLER = CommandHandler("export", export_data, run_async=True)

@@ -1,7 +1,15 @@
 from typing import Dict, List
 from uuid import uuid4
 from tg_bot import NO_LOAD
-from telegram import MAX_MESSAGE_LENGTH, Bot, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, InlineQueryResultArticle, InputTextMessageContent
+from telegram import (
+    MAX_MESSAGE_LENGTH,
+    Bot,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ParseMode,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
+)
 from telegram.error import TelegramError
 
 
@@ -74,6 +82,7 @@ def paginate_modules(page_n: int, module_dict: Dict, prefix, chat=None) -> List:
 
     return pairs
 
+
 def article(
     title: str = "",
     description: str = "",
@@ -94,6 +103,7 @@ def article(
         ),
         reply_markup=reply_markup,
     )
+
 
 def send_to_list(
     bot: Bot, send_to: list, message: str, markdown=False, html=False

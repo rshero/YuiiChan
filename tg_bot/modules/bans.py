@@ -11,7 +11,7 @@ from tg_bot import (
     log,
     DEV_USERS,
     SUDO_USERS,
-    SARDEGNA_USERS,
+    TIGER_USERS,
     SUPPORT_USERS,
     OWNER_ID,
     WHITELIST_USERS,
@@ -64,7 +64,7 @@ def ban(update, context):
 
     if is_user_ban_protected(chat, user_id, member) and user not in DEV_USERS:
         if user_id == OWNER_ID:
-            message.reply_text("I'd never ban my owner.")
+            message.reply_text("Trying to put me against my master, huh!.")
             return log_message
         elif user_id in DEV_USERS:
             message.reply_text("I can't act against our own.")
@@ -75,11 +75,11 @@ def ban(update, context):
         elif user_id in SUPPORT_USERS:
             message.reply_text("My support users are ban immune")
             return log_message
-        elif user_id in SARDEGNA_USERS:
-            message.reply_text("Bring an order from Eagle Union to fight a Sardegna.")
+        elif user_id in TIGER_USERS:
+            message.reply_text("This user has immunity and cannot be banned.")
             return log_message
         elif user_id in WHITELIST_USERS:
-            message.reply_text("Neptunians are ban immune!")
+            message.reply_text("This user has immunity and cannot be banned.")
             return log_message
         else:
             message.reply_text("This user has immunity and cannot be banned.")
@@ -349,7 +349,7 @@ def selfunban(context: CallbackContext, update: Update) -> str:
     message = update.effective_message
     user = update.effective_user
     bot, args = context.bot, context.args
-    if user.id not in SUDO_USERS or user.id not in SARDEGNA_USERS:
+    if user.id not in SUDO_USERS or user.id not in TIGER_USERS:
         return
 
     try:
@@ -384,7 +384,9 @@ def selfunban(context: CallbackContext, update: Update) -> str:
 
     return log
 
+
 from tg_bot.modules.language import gs
+
 
 def get_help(chat):
     return gs(chat, "bans_help")

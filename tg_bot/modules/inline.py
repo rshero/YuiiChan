@@ -8,8 +8,14 @@ from uuid import uuid4
 import requests
 from spamprotection.errors import HostDownError
 from spamprotection.sync import SPBClient
-from telegram import InlineQueryResultArticle, ParseMode, InputTextMessageContent, Update, InlineKeyboardMarkup, \
-    InlineKeyboardButton
+from telegram import (
+    InlineQueryResultArticle,
+    ParseMode,
+    InputTextMessageContent,
+    Update,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
 from telegram import __version__
 from telegram.error import BadRequest
 from telegram.ext import InlineQueryHandler, CallbackContext
@@ -22,9 +28,10 @@ from tg_bot import (
     SUDO_USERS,
     SUPPORT_USERS,
     DEV_USERS,
-    SARDEGNA_USERS,
+    TIGER_USERS,
     WHITELIST_USERS,
-    sw, log
+    sw,
+    log,
 )
 from tg_bot.modules.helper_funcs.misc import article
 
@@ -50,29 +57,29 @@ def inlinequery(update: Update, _) -> None:
             "title": "SpamProtection INFO",
             "description": "Look up a person/bot/channel/chat on @Intellivoid SpamProtection API",
             "message_text": "Click the button below to look up a person/bot/channel/chat on @Intellivoid SpamProtection API using "
-                            "username or telegram id",
+            "username or telegram id",
             "thumb_urL": "https://telegra.ph/file/3ce9045b1c7faf7123c67.jpg",
             "keyboard": ".spb ",
         },
         {
-            "title": "Account info on Kigyo",
-            "description": "Look up a Telegram account in Kigyo database",
-            "message_text": "Click the button below to look up a person in Kigyo database using their Telegram ID",
-            "thumb_urL": "https://telegra.ph/file/c85e07b58f5b3158b529a.jpg",
+            "title": "Account info on Yuii",
+            "description": "Look up a Telegram account in Yuii database",
+            "message_text": "Click the button below to look up a person in Yuii database using their Telegram ID",
+            "thumb_urL": "https://telegra.ph/file/145c818a6b4e5bc92765d.jpg",
             "keyboard": ".info ",
         },
         {
             "title": "About",
-            "description": "Know about Kigyo",
-            "message_text": "Click the button below to get to know about Kigyo.",
-            "thumb_urL": "https://telegra.ph/file/c85e07b58f5b3158b529a.jpg",
+            "description": "Know about Yuii",
+            "message_text": "Click the button below to get to know about Yuii.",
+            "thumb_urL": "https://telegra.ph/file/145c818a6b4e5bc92765d.jpg",
             "keyboard": ".about ",
         },
         {
             "title": "Anilist",
             "description": "Search anime and manga on AniList.co",
             "message_text": "Click the button below to search anime and manga on AniList.co",
-            "thumb_urL": "https://telegra.ph/file/c85e07b58f5b3158b529a.jpg",
+            "thumb_urL": "https://telegra.ph/file/145c818a6b4e5bc92765d.jpg",
             "keyboard": ".anilist ",
         },
     ]
@@ -99,9 +106,7 @@ def inlinequery(update: Update, _) -> None:
                             [
                                 InlineKeyboardButton(
                                     text="Click Here",
-                                    switch_inline_query_current_chat=ihelp[
-                                        "keyboard"
-                                    ],
+                                    switch_inline_query_current_chat=ihelp["keyboard"],
                                 )
                             ]
                         ]
@@ -149,22 +154,22 @@ def inlineinfo(query: str, update: Update, context: CallbackContext) -> None:
     nation_level_present = False
 
     if user.id == OWNER_ID:
-        text += f"\n\nThis person is my owner"
+        text += f"\n\nThis person is my master"
         nation_level_present = True
     elif user.id in DEV_USERS:
-        text += f"\n\nThis Person is a part of Eagle Union"
+        text += f"\n\nThis Person is a part of Yuii Chan Club"
         nation_level_present = True
     elif user.id in SUDO_USERS:
-        text += f"\n\nThe Nation level of this person is Royal"
+        text += f"\n\nThis person is a sudo user"
         nation_level_present = True
     elif user.id in SUPPORT_USERS:
-        text += f"\n\nThe Nation level of this person is Sakura"
+        text += f"\n\nThis person is one of my support user"
         nation_level_present = True
-    elif user.id in SARDEGNA_USERS:
-        text += f"\n\nThe Nation level of this person is Sardegna"
+    elif user.id in TIGER_USERS:
+        text += f"\n\nThis person is a tiger user"
         nation_level_present = True
     elif user.id in WHITELIST_USERS:
-        text += f"\n\nThe Nation level of this person is Neptunia"
+        text += f"\n\nThis person is a whitelist user"
         nation_level_present = True
 
     if nation_level_present:
@@ -181,9 +186,11 @@ def inlineinfo(query: str, update: Update, context: CallbackContext) -> None:
     except:
         pass  # don't crash if api is down somehow...
 
-    apst = requests.get(f'https://api.intellivoid.net/spamprotection/v1/lookup?query={context.bot.username}')
+    apst = requests.get(
+        f"https://api.intellivoid.net/spamprotection/v1/lookup?query={context.bot.username}"
+    )
     api_status = apst.status_code
-    if (api_status == 200):
+    if api_status == 200:
         try:
             status = client.raw_output(int(user.id))
             # ptid = status["results"]["private_telegram_id"]
@@ -217,32 +224,29 @@ def inlineinfo(query: str, update: Update, context: CallbackContext) -> None:
     num_chats = sql.get_user_num_chats(user.id)
     text += f"\n• Chat count: <code>{num_chats}</code>"
 
-
-
-
     kb = InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton(
                     text="Report Error",
-                    url=f"https://t.me/YorktownEagleUnion",
+                    url=f"https://t.me/yuiichansupport",
                 ),
                 InlineKeyboardButton(
                     text="Search again",
                     switch_inline_query_current_chat=".info ",
                 ),
-
             ],
         ]
-        )
+    )
 
     results = [
         InlineQueryResultArticle(
             id=str(uuid4()),
             title=f"User info of {html.escape(user.first_name)}",
-            input_message_content=InputTextMessageContent(text, parse_mode=ParseMode.HTML,
-                                                          disable_web_page_preview=True),
-            reply_markup=kb
+            input_message_content=InputTextMessageContent(
+                text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+            ),
+            reply_markup=kb,
         ),
     ]
 
@@ -256,8 +260,8 @@ def about(query: str, update: Update, context: CallbackContext) -> None:
     user = context.bot.get_chat(user_id)
     sql.update_user(user.id, user.username)
     about_text = f"""
-    Kigyo (@{context.bot.username})
-    Maintained by [Dank-del](t.me/dank_as_fuck)
+    Yuii (@{context.bot.username})
+    Maintained by [Rshero](t.me/rshero)
     Built with ❤️ using python-telegram-bot v{str(__version__)}
     Running on Python {python_version()}
     """
@@ -267,35 +271,20 @@ def about(query: str, update: Update, context: CallbackContext) -> None:
             [
                 InlineKeyboardButton(
                     text="Support",
-                    url=f"https://t.me/YorktownEagleUnion",
-                ),
-                InlineKeyboardButton(
-                    text="Channel",
-                    url=f"https://t.me/KigyoUpdates",
-                ),
-
-            ],
-            [
-                InlineKeyboardButton(
-                    text="GitLab",
-                    url=f"https://www.gitlab.com/Dank-del/EnterpriseALRobot",
-                ),
-                InlineKeyboardButton(
-                    text="GitHub",
-                    url="https://www.github.com/Dank-del/EnterpriseALRobot",
-                ),
-            ],
-        ])
+                    url=f"https://t.me/yuiichansupport",
+                )
+            ]
+        ]
+    )
 
     results.append(
-
-        InlineQueryResultArticle
-            (
+        InlineQueryResultArticle(
             id=str(uuid4()),
-            title=f"About Kigyo (@{context.bot.username})",
-            input_message_content=InputTextMessageContent(about_text, parse_mode=ParseMode.MARKDOWN,
-                                                          disable_web_page_preview=True),
-            reply_markup=kb
+            title=f"About Yuii (@{context.bot.username})",
+            input_message_content=InputTextMessageContent(
+                about_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True
+            ),
+            reply_markup=kb,
         )
     )
     update.inline_query.answer(results)
@@ -306,9 +295,11 @@ def spb(query: str, update: Update, context: CallbackContext) -> None:
     query = update.inline_query.query
     user_id = update.effective_user.id
     srdata = None
-    apst = requests.get(f'https://api.intellivoid.net/spamprotection/v1/lookup?query={context.bot.username}')
+    apst = requests.get(
+        f"https://api.intellivoid.net/spamprotection/v1/lookup?query={context.bot.username}"
+    )
     api_status = apst.status_code
-    if (api_status != 200):
+    if api_status != 200:
         stats = f"API RETURNED {api_status}"
     else:
         try:
@@ -347,12 +338,16 @@ def spb(query: str, update: Update, context: CallbackContext) -> None:
             stats += f"*Spam Prediction*:\n"
             stats += f' • *Ham Prediction*: `{a["results"]["spam_prediction"]["ham_prediction"]}`\n'
             stats += f' • *Spam Prediction*: `{a["results"]["spam_prediction"]["spam_prediction"]}`\n'
-            stats += f'*Blacklisted*: `{a["results"]["attributes"]["is_blacklisted"]}`\n'
+            stats += (
+                f'*Blacklisted*: `{a["results"]["attributes"]["is_blacklisted"]}`\n'
+            )
             if a["results"]["attributes"]["is_blacklisted"] is True:
                 stats += (
                     f' • *Reason*: `{a["results"]["attributes"]["blacklist_reason"]}`\n'
                 )
-                stats += f' • *Flag*: `{a["results"]["attributes"]["blacklist_flag"]}`\n'
+                stats += (
+                    f' • *Flag*: `{a["results"]["attributes"]["blacklist_flag"]}`\n'
+                )
             stats += f'*PTID*:\n`{a["results"]["private_telegram_id"]}`\n'
 
         else:
@@ -363,32 +358,32 @@ def spb(query: str, update: Update, context: CallbackContext) -> None:
             [
                 InlineKeyboardButton(
                     text="Report Error",
-                    url=f"https://t.me/YorktownEagleUnion",
+                    url=f"https://t.me/yuiichansupport",
                 ),
                 InlineKeyboardButton(
                     text="Search again",
                     switch_inline_query_current_chat=".spb ",
                 ),
-
             ],
-        ])
+        ]
+    )
 
     a = "the entity was not found"
     results = [
         InlineQueryResultArticle(
             id=str(uuid4()),
             title=f"SpamProtection API info of {srdata or a}",
-            input_message_content=InputTextMessageContent(stats, parse_mode=ParseMode.MARKDOWN,
-                                                          disable_web_page_preview=True),
-            reply_markup=kb
+            input_message_content=InputTextMessageContent(
+                stats, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True
+            ),
+            reply_markup=kb,
         ),
     ]
 
     update.inline_query.answer(results, cache_time=5)
 
 
-
-MEDIA_QUERY = '''query ($search: String) {
+MEDIA_QUERY = """query ($search: String) {
   Page (perPage: 10) {
     media (search: $search) {
       id
@@ -419,7 +414,7 @@ MEDIA_QUERY = '''query ($search: String) {
       siteUrl
     }
   }
-}'''
+}"""
 
 
 def media_query(query: str, update: Update, context: CallbackContext) -> None:
@@ -430,18 +425,23 @@ def media_query(query: str, update: Update, context: CallbackContext) -> None:
 
     try:
         results: List = []
-        r = requests.post('https://graphql.anilist.co',
-                          data=json.dumps({'query': MEDIA_QUERY, 'variables': {'search': query}}),
-                          headers={'Content-Type': 'application/json', 'Accept': 'application/json'})
+        r = requests.post(
+            "https://graphql.anilist.co",
+            data=json.dumps({"query": MEDIA_QUERY, "variables": {"search": query}}),
+            headers={"Content-Type": "application/json", "Accept": "application/json"},
+        )
         res = r.json()
-        data = res['data']['Page']['media']
+        data = res["data"]["Page"]["media"]
         res = data
         for data in res:
             title_en = data["title"].get("english") or "N/A"
             title_ja = data["title"].get("romaji") or "N/A"
             format = data.get("format") or "N/A"
             type = data.get("type") or "N/A"
-            bannerimg = data.get("bannerImage") or "https://telegra.ph/file/cc83a0b7102ad1d7b1cb3.jpg"
+            bannerimg = (
+                data.get("bannerImage")
+                or "https://telegra.ph/file/cc83a0b7102ad1d7b1cb3.jpg"
+            )
             try:
                 des = data.get("description").replace("<br>", "").replace("</br>", "")
                 description = des.replace("<i>", "").replace("</i>", "") or "N/A"
@@ -454,15 +454,17 @@ def media_query(query: str, update: Update, context: CallbackContext) -> None:
                 description = description or "N/A"
 
             if len((str(description))) > 700:
-                description = description [0:700] + "....."
+                description = description[0:700] + "....."
 
             avgsc = data.get("averageScore") or "N/A"
             status = data.get("status") or "N/A"
             genres = data.get("genres") or "N/A"
             genres = ", ".join(genres)
-            img = f"https://img.anili.st/media/{data['id']}" or "https://telegra.ph/file/cc83a0b7102ad1d7b1cb3.jpg"
+            img = (
+                f"https://img.anili.st/media/{data['id']}"
+                or "https://telegra.ph/file/cc83a0b7102ad1d7b1cb3.jpg"
+            )
             aurl = data.get("siteUrl")
-
 
             kb = InlineKeyboardMarkup(
                 [
@@ -475,9 +477,9 @@ def media_query(query: str, update: Update, context: CallbackContext) -> None:
                             text="Search again",
                             switch_inline_query_current_chat=".anilist ",
                         ),
-
                     ],
-                ])
+                ]
+            )
 
             txt = f"<b>{title_en} | {title_ja}</b>\n"
             txt += f"<b>Format</b>: <code>{format}</code>\n"
@@ -489,15 +491,15 @@ def media_query(query: str, update: Update, context: CallbackContext) -> None:
             txt += f"<a href='{img}'>&#xad</a>"
 
             results.append(
-                InlineQueryResultArticle
-                    (
+                InlineQueryResultArticle(
                     id=str(uuid4()),
                     title=f"{title_en} | {title_ja} | {format}",
                     thumb_url=img,
                     description=f"{description}",
-                    input_message_content=InputTextMessageContent(txt, parse_mode=ParseMode.HTML,
-                                                                  disable_web_page_preview=False),
-                    reply_markup=kb
+                    input_message_content=InputTextMessageContent(
+                        txt, parse_mode=ParseMode.HTML, disable_web_page_preview=False
+                    ),
+                    reply_markup=kb,
                 )
             )
     except Exception as e:
@@ -507,27 +509,27 @@ def media_query(query: str, update: Update, context: CallbackContext) -> None:
                 [
                     InlineKeyboardButton(
                         text="Report error",
-                        url="t.me/YorktownEagleUnion",
+                        url="t.me/yuiichansupport",
                     ),
                     InlineKeyboardButton(
                         text="Search again",
                         switch_inline_query_current_chat=".anilist ",
                     ),
-
                 ],
-            ])
+            ]
+        )
 
         results.append(
-
-            InlineQueryResultArticle
-                (
+            InlineQueryResultArticle(
                 id=str(uuid4()),
                 title=f"Media {query} not found",
-                input_message_content=InputTextMessageContent(f"Media {query} not found due to {e}", parse_mode=ParseMode.MARKDOWN,
-                                                              disable_web_page_preview=True),
-                reply_markup=kb
+                input_message_content=InputTextMessageContent(
+                    f"Media {query} not found due to {e}",
+                    parse_mode=ParseMode.MARKDOWN,
+                    disable_web_page_preview=True,
+                ),
+                reply_markup=kb,
             )
-
         )
 
     update.inline_query.answer(results, cache_time=5)

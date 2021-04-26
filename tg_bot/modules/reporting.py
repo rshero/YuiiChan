@@ -1,6 +1,6 @@
 import html
 
-from tg_bot import log, SUDO_USERS, SARDEGNA_USERS, WHITELIST_USERS, dispatcher
+from tg_bot import log, SUDO_USERS, TIGER_USERS, WHITELIST_USERS, dispatcher
 from tg_bot.modules.helper_funcs.chat_status import user_admin, user_not_admin
 from tg_bot.modules.log_channel import loggable
 from tg_bot.modules.sql import reporting_sql as sql
@@ -17,7 +17,7 @@ from telegram.ext import (
 from telegram.utils.helpers import mention_html
 
 REPORT_GROUP = 12
-REPORT_IMMUNE_USERS = SUDO_USERS + SARDEGNA_USERS + WHITELIST_USERS
+REPORT_IMMUNE_USERS = SUDO_USERS + TIGER_USERS + WHITELIST_USERS
 
 
 @user_admin
@@ -92,7 +92,7 @@ def report(update: Update, context: CallbackContext) -> str:
             return ""
 
         if reported_user.id in REPORT_IMMUNE_USERS:
-            message.reply_text("Uh? You reporting a nation?")
+            message.reply_text("Uh? You can not report him. He is immune")
             return ""
 
         if chat.username and chat.type == Chat.SUPERGROUP:
@@ -194,7 +194,9 @@ def report(update: Update, context: CallbackContext) -> str:
                     log.exception("Exception while reporting user")
 
         try:
-            update.effective_message.reply_sticker("CAACAgUAAx0CRSKHWwABAXGoYB2UJauytkH4RJWSStz9DTlxQg0AAlcHAAKAUF41_sNx9Y1z2DQeBA")
+            update.effective_message.reply_sticker(
+                "CAACAgUAAx0CRSKHWwABAXGoYB2UJauytkH4RJWSStz9DTlxQg0AAlcHAAKAUF41_sNx9Y1z2DQeBA"
+            )
         except:
             pass
         message.reply_to_message.reply_text(
@@ -267,8 +269,10 @@ def buttons(update: Update, context: CallbackContext):
 
 from tg_bot.modules.language import gs
 
+
 def get_help(chat):
     return gs(chat, "reports_help")
+
 
 SETTING_HANDLER = CommandHandler("reports", report_setting, run_async=True)
 REPORT_HANDLER = CommandHandler(

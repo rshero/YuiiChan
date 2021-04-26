@@ -16,11 +16,11 @@ from tg_bot import (
     SUDO_USERS,
     SUPPORT_USERS,
     DEV_USERS,
-    SARDEGNA_USERS,
+    TIGER_USERS,
     WHITELIST_USERS,
     INFOPIC,
     sw,
-    StartTime
+    StartTime,
 )
 from tg_bot.__main__ import STATS, USER_INFO, TOKEN
 from tg_bot.modules.disable import DisableAbleCommandHandler
@@ -35,6 +35,7 @@ import platform
 from platform import python_version
 from spamprotection.sync import SPBClient
 from spamprotection.errors import HostDownError
+
 client = SPBClient()
 
 MARKDOWN_HELP = f"""
@@ -169,9 +170,11 @@ def info(update: Update, context: CallbackContext):
     except:
         pass  # don't crash if api is down somehow...
 
-    apst = requests.get(f'https://api.intellivoid.net/spamprotection/v1/lookup?query={context.bot.username}')
+    apst = requests.get(
+        f"https://api.intellivoid.net/spamprotection/v1/lookup?query={context.bot.username}"
+    )
     api_status = apst.status_code
-    if (api_status == 200):
+    if api_status == 200:
         try:
             status = client.raw_output(int(user.id))
             ptid = status["results"]["private_telegram_id"]
@@ -221,24 +224,23 @@ def info(update: Update, context: CallbackContext):
     except BadRequest:
         pass
 
-
     if user.id == OWNER_ID:
-        text += f"\nThis person is my owner"
+        text += f"\nThis person is my master"
         Nation_level_present = True
     elif user.id in DEV_USERS:
-        text += f"\nThis Person is a part of Eagle Union"
+        text += f"\nThis Person is a part of Yuii Chan Club"
         Nation_level_present = True
     elif user.id in SUDO_USERS:
-        text += f"\nThe Nation level of this person is Royal"
+        text += f"\nThis person is a sudo user"
         Nation_level_present = True
     elif user.id in SUPPORT_USERS:
-        text += f"\nThe Nation level of this person is Sakura"
+        text += f"\nThis person is one of my support user"
         Nation_level_present = True
-    elif user.id in SARDEGNA_USERS:
-        text += f"\nThe Nation level of this person is Sardegna"
+    elif user.id in TIGER_USERS:
+        text += f"\nThis person is a tiger user"
         Nation_level_present = True
     elif user.id in WHITELIST_USERS:
-        text += f"\nThe Nation level of this person is Neptunia"
+        text += f"\nThis person is a whitelist user"
         Nation_level_present = True
 
     if Nation_level_present:
@@ -325,7 +327,9 @@ def ram(update: Update, _):
 
 def markdown_help(update: Update, _):
     chat = update.effective_chat
-    update.effective_message.reply_text((gs(chat.id, "markdown_help_text")), parse_mode=ParseMode.HTML)
+    update.effective_message.reply_text(
+        (gs(chat.id, "markdown_help_text")), parse_mode=ParseMode.HTML
+    )
     update.effective_message.reply_text(
         "Try forwarding the following message to me, and you'll see!"
     )
@@ -334,6 +338,7 @@ def markdown_help(update: Update, _):
         "[URL](example.com) [button](buttonurl:github.com) "
         "[button2](buttonurl://google.com:same)"
     )
+
 
 def get_readable_time(seconds: int) -> str:
     count = 0
@@ -362,6 +367,7 @@ def get_readable_time(seconds: int) -> str:
 
     return ping_time
 
+
 @sudo_plus
 def stats(update, context):
     uptime = datetime.datetime.fromtimestamp(boot_time()).strftime("%Y-%m-%d %H:%M:%S")
@@ -389,26 +395,29 @@ def stats(update, context):
 
     try:
         update.effective_message.reply_text(
-
-            f"*Kigyo (@{context.bot.username}), *\n" +
-            "Maintained by [Dank-del](github.com/Dank-del)\n" +
-            "Built with <3 using python-telegram-bot\n\n" + status +
-            f"*• Running on commit*: `{sha}`\n" +
-            "\n*Bot statistics*:\n"
-            + "\n".join([mod.__stats__() for mod in STATS]) +
-            "\n\n*SRC*: [GitHub](https://github.com/Dank-del/EnterpriseALRobot) | [GitLab](https://gitlab.com/Dank-del/EnterpriseALRobot)",
-        parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+            f"*Yuii (@{context.bot.username}), *\n"
+            + "Maintained by [Rshero]](github.com/rshero)\n"
+            + "Built with <3 using python-telegram-bot\n\n"
+            + status
+            + f"*• Running on commit*: `{sha}`\n"
+            + "\n*Bot statistics*:\n"
+            + "\n".join([mod.__stats__() for mod in STATS])
+            + "\n\n*SRC*: [GitHub](https://github.com/rshero/YuiiChan)",
+            parse_mode=ParseMode.MARKDOWN,
+            disable_web_page_preview=True,
+        )
     except BaseException:
         update.effective_message.reply_text(
-
-            f"*Kigyo (@{context.bot.username}), *\n" +
-            "built by [Dank-del](github.com/Dank-del)\n" +
-            "Built with <3 using python-telegram-bot\n" +
-            f"*• Running on commit*: `{sha}`\n"
+            f"*Yuii (@{context.bot.username}), *\n"
+            + "built by [Rshero](github.com/rshero)\n"
+            + "Built with <3 using python-telegram-bot\n"
+            + f"*• Running on commit*: `{sha}`\n"
             "\n*Bot statistics*:\n"
-            + "\n".join([mod.__stats__() for mod in STATS]) +
-            "\n\n*SRC*: [GitHub](https://github.com/Dank-del/EnterpriseALRobot) | [GitLab](https://gitlab.com/Dank-del/EnterpriseALRobot)",
-        parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+            + "\n".join([mod.__stats__() for mod in STATS])
+            + "\n\n*SRC*: [GitHub](https://github.com/rshero/YuiiChan)",
+            parse_mode=ParseMode.MARKDOWN,
+            disable_web_page_preview=True,
+        )
 
 
 def ping(update: Update, _):
@@ -424,7 +433,6 @@ def ping(update: Update, _):
 
 def get_help(chat):
     return gs(chat, "misc_help")
-
 
 
 ID_HANDLER = DisableAbleCommandHandler("id", get_id, pass_args=True, run_async=True)

@@ -5,7 +5,7 @@ from tg_bot import (
     DEV_USERS,
     SUDO_USERS,
     SUPPORT_USERS,
-    SARDEGNA_USERS,
+    TIGER_USERS,
     WHITELIST_USERS,
     dispatcher,
 )
@@ -22,7 +22,7 @@ def is_whitelist_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bo
         user_id in user
         for user in [
             WHITELIST_USERS,
-            SARDEGNA_USERS,
+            TIGER_USERS,
             SUPPORT_USERS,
             SUDO_USERS,
             DEV_USERS,
@@ -85,7 +85,7 @@ def is_user_ban_protected(chat: Chat, user_id: int, member: ChatMember = None) -
         or user_id in SUDO_USERS
         or user_id in DEV_USERS
         or user_id in WHITELIST_USERS
-        or user_id in SARDEGNA_USERS
+        or user_id in TIGER_USERS
         or chat.all_members_are_administrators
         or user_id in [777000, 1087968824]
     ):  # Count telegram and Group Anonymous as admin
@@ -181,7 +181,7 @@ def whitelist_plus(func):
             return func(update, context, *args, **kwargs)
         else:
             update.effective_message.reply_text(
-                f"You don't have access to use this.\nVisit @YorkTownEagleUnion"
+                f"You don't have access to use this.\nVisit @yuiichansupport"
             )
 
     return is_whitelist_plus_func

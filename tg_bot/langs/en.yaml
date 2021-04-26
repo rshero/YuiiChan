@@ -13,10 +13,10 @@ pm_start_text: |
    I am an Anime themed group management bot with some fun extras ;)
    Try the buttons below to know how I work.
    
-grp_start_text: "Hi, I'm Kigyo."
+grp_start_text: "Well I'm alive!"
 
 pm_help_text: |
-   Hello there! My name is *Kigyo*. A part of *Eagle Union*.
+   Hello there! My name is *Yuii*.*.
    I'm a modular group management bot with a few fun extras! Have a look at the following for an idea of some of
    the things I can help you with.
    *Main* commands available:
@@ -28,7 +28,7 @@ pm_help_text: |
       - in a group: will redirect you to pm, with all that chat's settings.
     Click on the buttons below to get documentation about specific modules!
 
-add_bot_to_group_btn: "Add Kigyo"
+add_bot_to_group_btn: "Add Yuii"
 support_chat_link_btn: "Support"
 updates_channel_link_btn: "Updates"
 src_btn: "Source code"
@@ -56,6 +56,18 @@ anilist_help: |
      - /anime <anime>: returns information about the anime.
      - /character <character>: returns information about the character.
      - /manga <manga>: returns information about the manga.
+    For Getting Information from [MyAnimeList](https://myanimelist.net)
+      • `/yanime <anime>`*:* returns information about the anime.
+      • `/ycharacter <character>`*:* returns information about the character.
+      • `/ymanga <manga>`*:* returns information about the manga.
+      • `/yupcoming`*:* returns a list of new anime in the upcoming seasons.
+      • `/user <user>`*:* returns information about a MyAnimeList user.
+            
+    For Anime Quotes
+            
+      • `/quote`*:* returns a random anime quote.
+            
+      """
 
 antiflood_help: |
     Antiflood allows you to take action on users that send more than x messages in a row. Exceeding the set flood
@@ -206,9 +218,9 @@ antispam_help: |
 
      Anti-Spam, used by bot devs to ban spammers across all groups. This helps protect
      you and your groups by removing spam flooders as quickly as possible.
-     *Note:* Users can appeal gbans or report spammers at @YorkTownEagleUnion
+     *Note:* Users can appeal gbans or report spammers at @yuiichansupport
 
-     Kigyo also integrates @Spamwatch and @Intellivoid's SpamProtectionBot API to remove Spammers as much as possible from your chatroom!
+     Yuii also integrates @Spamwatch and @Intellivoid's SpamProtectionBot API to remove Spammers as much as possible from your chatroom!
      *What is SpamWatch?*
      SpamWatch maintains a large constantly updated ban-list of spambots, trolls, bitcoin spammers and unsavoury characters.
      Constantly help banning spammers off from your group automatically So, you wont have to worry about spammers storming your group.
@@ -262,7 +274,7 @@ log_help: |
       • forwarding the `/setlog` to the group
 
 markdown_help_text: |
-      Markdown is a very powerful formatting tool supported by telegram. Kigyo has some enhancements, to make sure that
+      Markdown is a very powerful formatting tool supported by telegram. Yuii has some enhancements, to make sure that
       saved messages are correctly parsed, and to allow you to create buttons.
 
       - <code>_italic_</code>: wrapping text with '_' will produce italic text
@@ -393,13 +405,13 @@ greetings_help: |
        • `/welcomehelp`*:* view more formatting information for custom welcome/goodbye messages.
 
 nation_help: |
-      - /eagle - Lists all Eagle Union members.
-      - /royals - Lists all Royal Nations.
-      - /sakuras - Lists all Sakura Nations.
-      - /sardegnas - Lists all Sardegnas Nations.
-      - /neptunians - Lists all Neptunia Nations.
+      - /devlist - Lists all Yuii Chan Club members.
+      - /sudolist - Lists all SUDO Users.
+      - /supportlist - Lists all SUPPORT Users.
+      - /tigerlist - Lists all TIGERs Users.
+      - /whitelistlist - Lists all WHITELIST Users.
       Note: These commands list users with special bot priveleges and can only be used by them.
-      You can visit @YorktownEagleUnion to query more about these.
+      You can visit @yuiichansupport to query more about these.
 
 nlp_help: |
 

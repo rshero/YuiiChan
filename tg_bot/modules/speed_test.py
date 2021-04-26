@@ -46,7 +46,7 @@ def speedtestxyz_callback(update: Update, context: CallbackContext):
             replymsg += f"\nDownload: `{convert(result['download'])}Mb/s`\nUpload: `{convert(result['upload'])}Mb/s`\nPing: `{result['ping']}`"
             update.effective_message.edit_text(replymsg, parse_mode=ParseMode.MARKDOWN)
     else:
-        query.answer("You are not a part of Eagle Union.")
+        query.answer("You are not a part of EYuii Chan Club.")
 
 
 SPEED_TEST_HANDLER = DisableAbleCommandHandler(

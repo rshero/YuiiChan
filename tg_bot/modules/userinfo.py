@@ -156,7 +156,9 @@ def set_about_bio(update: Update, context: CallbackContext):
             return
 
         if user_id == bot.id and sender_id not in DEV_USERS:
-            message.reply_text("Erm... yeah, I only trust Eagle Union to set my bio.")
+            message.reply_text(
+                "Erm... yeah, I only trust Yuii Chan Club members to set my bio."
+            )
             return
 
         text = message.text
@@ -195,8 +197,10 @@ def __user_info__(user_id):
 
 from tg_bot.modules.language import gs
 
+
 def get_help(chat):
     return gs(chat, "userinfo_help")
+
 
 SET_BIO_HANDLER = DisableAbleCommandHandler("setbio", set_about_bio, run_async=True)
 GET_BIO_HANDLER = DisableAbleCommandHandler(

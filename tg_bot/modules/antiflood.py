@@ -14,7 +14,7 @@ from telegram import (
     ChatPermissions,
 )
 
-from tg_bot import SARDEGNA_USERS, WHITELIST_USERS, dispatcher
+from tg_bot import TIGER_USERS, WHITELIST_USERS, dispatcher
 from tg_bot.modules.sql.approve_sql import is_approved
 from tg_bot.modules.helper_funcs.chat_status import (
     bot_admin,
@@ -63,7 +63,7 @@ def check_flood(update, context) -> str:
     if (
         is_user_admin(chat, user.id)
         or user.id in WHITELIST_USERS
-        or user.id in SARDEGNA_USERS
+        or user.id in TIGER_USERS
     ):
         sql.update_flood(chat.id, None)
         return ""

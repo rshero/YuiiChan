@@ -10,7 +10,7 @@ from telegram.utils.helpers import mention_html
 from tg_bot import (
     dispatcher,
     WHITELIST_USERS,
-    SARDEGNA_USERS,
+    TIGER_USERS,
     SUPPORT_USERS,
     SUDO_USERS,
     DEV_USERS,
@@ -35,6 +35,7 @@ def check_user_id(user_id: int, context: CallbackContext) -> Optional[str]:
         reply = None
     return reply
 
+
 @dev_plus
 @gloggable
 def addsudo(update: Update, context: CallbackContext) -> str:
@@ -55,16 +56,16 @@ def addsudo(update: Update, context: CallbackContext) -> str:
         data = json.load(infile)
 
     if user_id in SUDO_USERS:
-        message.reply_text("This member is already a Sudo user")
+        message.reply_text("This member is already Dev")
         return ""
 
     if user_id in SUPPORT_USERS:
-        rt += "Requested Eagle Union to promote a Support user to Sudo."
+        rt += "Requested bot Admins to promote."
         data["supports"].remove(user_id)
         SUPPORT_USERS.remove(user_id)
 
     if user_id in WHITELIST_USERS:
-        rt += "Requested Eagle Union to promote a Whitelist user to Sudo."
+        rt += "Requested bot Admins to promote."
         data["whitelists"].remove(user_id)
         WHITELIST_USERS.remove(user_id)
 
@@ -75,23 +76,19 @@ def addsudo(update: Update, context: CallbackContext) -> str:
         json.dump(data, outfile, indent=4)
 
     update.effective_message.reply_text(
-        rt
-        + "\nSuccessfully promoted {} to Sudo!".format(
-            user_member.first_name
-        )
+        rt + "\nSuccessfully promoted {} to sudo!".format(user_member.first_name)
     )
 
     log_message = (
         f"#SUDO\n"
-        f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))}\n"
-        f"<b>User:</b> {mention_html(user_member.id, html.escape(user_member.first_name))}"
+        f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
+        f"<b>User:</b> {mention_html(user_member.id, user_member.first_name)}"
     )
 
     if chat.type != "private":
         log_message = f"<b>{html.escape(chat.title)}:</b>\n" + log_message
 
     return log_message
-
 
 
 @sudo_plus
@@ -117,16 +114,16 @@ def addsupport(
         data = json.load(infile)
 
     if user_id in SUDO_USERS:
-        rt += "Requested Eagle Union to demote this Sudo to Support"
+        rt += "Requested bot Admins to promote."
         data["sudos"].remove(user_id)
         SUDO_USERS.remove(user_id)
 
     if user_id in SUPPORT_USERS:
-        message.reply_text("This user is already a Support user.")
+        message.reply_text("This user is already a support user.")
         return ""
 
     if user_id in WHITELIST_USERS:
-        rt += "Requested Eagle Union to promote this Whitelist user to Support"
+        rt += "Requested Yui-Chan Club for Promotion"
         data["whitelists"].remove(user_id)
         WHITELIST_USERS.remove(user_id)
 
@@ -137,20 +134,19 @@ def addsupport(
         json.dump(data, outfile, indent=4)
 
     update.effective_message.reply_text(
-        rt + f"\n{user_member.first_name} was added as a Support user!"
+        rt + f"\n{user_member.first_name} was added as a support user!"
     )
 
     log_message = (
         f"#SUPPORT\n"
-        f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))}\n"
-        f"<b>User:</b> {mention_html(user_member.id, html.escape(user_member.first_name))}"
+        f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
+        f"<b>User:</b> {mention_html(user_member.id, user_member.first_name)}"
     )
 
     if chat.type != "private":
         log_message = f"<b>{html.escape(chat.title)}:</b>\n" + log_message
 
     return log_message
-
 
 
 @sudo_plus
@@ -173,17 +169,17 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
         data = json.load(infile)
 
     if user_id in SUDO_USERS:
-        rt += "This member is a Sudo user, Demoting to Whitelisted user."
+        rt += "This member is a sudo user, Demoting him."
         data["sudos"].remove(user_id)
         SUDO_USERS.remove(user_id)
 
     if user_id in SUPPORT_USERS:
-        rt += "This user is already a Support user, Demoting to Whitelisted user."
+        rt += "This user is already a support user, Demoting him."
         data["supports"].remove(user_id)
         SUPPORT_USERS.remove(user_id)
 
     if user_id in WHITELIST_USERS:
-        message.reply_text("This user is already a Whitelist user.")
+        message.reply_text("This user is already a whitelist user.")
         return ""
 
     data["whitelists"].append(user_id)
@@ -193,13 +189,13 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
         json.dump(data, outfile, indent=4)
 
     update.effective_message.reply_text(
-        rt + f"\nSuccessfully promoted {user_member.first_name} to a Whitelist user!"
+        rt + f"\nSuccessfully promoted {user_member.first_name} to a Whitelist User!"
     )
 
     log_message = (
         f"#WHITELIST\n"
-        f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))} \n"
-        f"<b>User:</b> {mention_html(user_member.id, html.escape(user_member.first_name))}"
+        f"<b>Admin:</b> {mention_html(user.id, user.first_name)} \n"
+        f"<b>User:</b> {mention_html(user_member.id, user_member.first_name)}"
     )
 
     if chat.type != "private":
@@ -208,10 +204,9 @@ def addwhitelist(update: Update, context: CallbackContext) -> str:
     return log_message
 
 
-
 @sudo_plus
 @gloggable
-def addsardegna(update: Update, context: CallbackContext) -> str:
+def addtiger(update: Update, context: CallbackContext) -> str:
     message = update.effective_message
     user = update.effective_user
     chat = update.effective_chat
@@ -229,45 +224,44 @@ def addsardegna(update: Update, context: CallbackContext) -> str:
         data = json.load(infile)
 
     if user_id in SUDO_USERS:
-        rt += "This member is a Sudo user, Demoting to Sardegna."
+        rt += "This member is a sudo user, Demoting him."
         data["sudos"].remove(user_id)
         SUDO_USERS.remove(user_id)
 
     if user_id in SUPPORT_USERS:
-        rt += "This user is already a Support user, Demoting to Sardegna."
+        rt += "This user is already a Support user, Demoting him."
         data["supports"].remove(user_id)
         SUPPORT_USERS.remove(user_id)
 
     if user_id in WHITELIST_USERS:
-        rt += "This user is already a Whitelist user, Demoting to Sardegna."
+        rt += "This user is already a Whitelist user, Demoting him."
         data["whitelists"].remove(user_id)
         WHITELIST_USERS.remove(user_id)
 
-    if user_id in SARDEGNA_USERS:
-        message.reply_text("This user is already a Sardegna.")
+    if user_id in TIGER_USERS:
+        message.reply_text("This user is already a sudo.")
         return ""
 
-    data["sardegnas"].append(user_id)
-    SARDEGNA_USERS.append(user_id)
+    data["tigers"].append(user_id)
+    TIGER_USERS.append(user_id)
 
     with open(ELEVATED_USERS_FILE, "w") as outfile:
         json.dump(data, outfile, indent=4)
 
     update.effective_message.reply_text(
-        rt + f"\nSuccessfully promoted {user_member.first_name} to a Sardegna Nation!"
+        rt + f"\nSuccessfully promoted {user_member.first_name} to a sudo user!"
     )
 
     log_message = (
-        f"#SARDEGNA\n"
-        f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))} \n"
-        f"<b>User:</b> {mention_html(user_member.id, html.escape(user_member.first_name))}"
+        f"#TIGER\n"
+        f"<b>Admin:</b> {mention_html(user.id, user.first_name)} \n"
+        f"<b>User:</b> {mention_html(user_member.id, user_member.first_name)}"
     )
 
     if chat.type != "private":
         log_message = f"<b>{html.escape(chat.title)}:</b>\n" + log_message
 
     return log_message
-
 
 
 @dev_plus
@@ -289,7 +283,7 @@ def removesudo(update: Update, context: CallbackContext) -> str:
         data = json.load(infile)
 
     if user_id in SUDO_USERS:
-        message.reply_text("Requested Eagle Union to demote this user to Civilian")
+        message.reply_text("Requested bot Admins to demote him.")
         SUDO_USERS.remove(user_id)
         data["sudos"].remove(user_id)
 
@@ -298,8 +292,8 @@ def removesudo(update: Update, context: CallbackContext) -> str:
 
         log_message = (
             f"#UNSUDO\n"
-            f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))}\n"
-            f"<b>User:</b> {mention_html(user_member.id, html.escape(user_member.first_name))}"
+            f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
+            f"<b>User:</b> {mention_html(user_member.id, user_member.first_name)}"
         )
 
         if chat.type != "private":
@@ -308,9 +302,8 @@ def removesudo(update: Update, context: CallbackContext) -> str:
         return log_message
 
     else:
-        message.reply_text("This user is not a Sudo user!")
+        message.reply_text("This user is not a Dev user!")
         return ""
-
 
 
 @sudo_plus
@@ -332,7 +325,7 @@ def removesupport(update: Update, context: CallbackContext) -> str:
         data = json.load(infile)
 
     if user_id in SUPPORT_USERS:
-        message.reply_text("Requested Eagle Union to demote this user to Civilian")
+        message.reply_text("Requested bot Admins to demote him")
         SUPPORT_USERS.remove(user_id)
         data["supports"].remove(user_id)
 
@@ -341,8 +334,8 @@ def removesupport(update: Update, context: CallbackContext) -> str:
 
         log_message = (
             f"#UNSUPPORT\n"
-            f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))}\n"
-            f"<b>User:</b> {mention_html(user_member.id, html.escape(user_member.first_name))}"
+            f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
+            f"<b>User:</b> {mention_html(user_member.id, user_member.first_name)}"
         )
 
         if chat.type != "private":
@@ -351,9 +344,8 @@ def removesupport(update: Update, context: CallbackContext) -> str:
         return log_message
 
     else:
-        message.reply_text("This user is not a Support user!")
+        message.reply_text("This user is not a Sudo User!")
         return ""
-
 
 
 @sudo_plus
@@ -384,8 +376,8 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
 
         log_message = (
             f"#UNWHITELIST\n"
-            f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))}\n"
-            f"<b>User:</b> {mention_html(user_member.id, html.escape(user_member.first_name))}"
+            f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
+            f"<b>User:</b> {mention_html(user_member.id, user_member.first_name)}"
         )
 
         if chat.type != "private":
@@ -397,10 +389,9 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
         return ""
 
 
-
 @sudo_plus
 @gloggable
-def removesardegna(update: Update, context: CallbackContext) -> str:
+def removetiger(update: Update, context: CallbackContext) -> str:
     message = update.effective_message
     user = update.effective_user
     chat = update.effective_chat
@@ -416,18 +407,18 @@ def removesardegna(update: Update, context: CallbackContext) -> str:
     with open(ELEVATED_USERS_FILE, "r") as infile:
         data = json.load(infile)
 
-    if user_id in SARDEGNA_USERS:
+    if user_id in TIGER_USERS:
         message.reply_text("Demoting to normal user")
-        SARDEGNA_USERS.remove(user_id)
-        data["sardegnas"].remove(user_id)
+        TIGER_USERS.remove(user_id)
+        data["tigers"].remove(user_id)
 
         with open(ELEVATED_USERS_FILE, "w") as outfile:
             json.dump(data, outfile, indent=4)
 
         log_message = (
-            f"#UNSARDEGNA\n"
-            f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))}\n"
-            f"<b>User:</b> {mention_html(user_member.id, html.escape(user_member.first_name))}"
+            f"#UNTIGER\n"
+            f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
+            f"<b>User:</b> {mention_html(user_member.id, user_member.first_name)}"
         )
 
         if chat.type != "private":
@@ -435,33 +426,14 @@ def removesardegna(update: Update, context: CallbackContext) -> str:
 
         return log_message
     else:
-        message.reply_text("This user is not a Sardegna Nation!")
+        message.reply_text("This user is not a Sudo")
         return ""
-
-# I added extra new lines
-nations = """ Kigyō has bot access levels we call as *"Nation Levels"*
-\n*Eagle Union* - Devs who can access the bots server and can execute, edit, modify bot code. Can also manage other Nations
-\n*God* - Only one exists, bot owner.
-Owner has complete bot access, including bot adminship in chats Kigyō is at.
-\n*Royals* - Have super user access, can gban, manage Nations lower than them and are admins in Kigyō.
-\n*Sakuras* - Have access go globally ban users across Kigyō.
-\n*Sardegnas* - Same as Neptunians but can unban themselves if banned.
-\n*Neptunians* - Cannot be banned, muted flood kicked but can be manually banned by admins.
-\n*Disclaimer*: The Nation levels in Kigyō are there for troubleshooting, support, banning potential scammers.
-Report abuse or ask us more on these at [Eagle Union](https://t.me/YorktownEagleUnion).
-"""
-
-
-def send_nations(update):
-    update.effective_message.reply_text(
-        nations, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True
-    )
 
 
 @whitelist_plus
 def whitelistlist(update: Update, context: CallbackContext):
+    reply = "<b>Known whitelist users:</b>\n"
     bot = context.bot
-    reply = "<b>Known Neptunia Nations :</b>\n"
     for each_user in WHITELIST_USERS:
         user_id = int(each_user)
         try:
@@ -474,10 +446,10 @@ def whitelistlist(update: Update, context: CallbackContext):
 
 
 @whitelist_plus
-def Sardegnalist(update: Update, context: CallbackContext):
+def tigerlist(update: Update, context: CallbackContext):
+    reply = "<b>Known lesser sudos:</b>\n"
     bot = context.bot
-    reply = "<b>Known Sardegna Nations :</b>\n"
-    for each_user in SARDEGNA_USERS:
+    for each_user in TIGER_USERS:
         user_id = int(each_user)
         try:
             user = bot.get_chat(user_id)
@@ -490,7 +462,7 @@ def Sardegnalist(update: Update, context: CallbackContext):
 @whitelist_plus
 def supportlist(update: Update, context: CallbackContext):
     bot = context.bot
-    reply = "<b>Known Sakura Nations :</b>\n"
+    reply = "<b>Known Support Users:</b>\n"
     for each_user in SUPPORT_USERS:
         user_id = int(each_user)
         try:
@@ -505,7 +477,7 @@ def supportlist(update: Update, context: CallbackContext):
 def sudolist(update: Update, context: CallbackContext):
     bot = context.bot
     true_sudo = list(set(SUDO_USERS) - set(DEV_USERS))
-    reply = "<b>Known Royal Nations :</b>\n"
+    reply = "<b>Known Sudo Users :</b>\n"
     for each_user in true_sudo:
         user_id = int(each_user)
         try:
@@ -520,7 +492,7 @@ def sudolist(update: Update, context: CallbackContext):
 def devlist(update: Update, context: CallbackContext):
     bot = context.bot
     true_dev = list(set(DEV_USERS) - {OWNER_ID})
-    reply = "<b>Eagle Union Members :</b>\n"
+    reply = "<b>Yui-Chan Club Members ⚡️:</b>\n"
     for each_user in true_dev:
         user_id = int(each_user)
         try:
@@ -531,58 +503,60 @@ def devlist(update: Update, context: CallbackContext):
     update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
 
 
-from tg_bot.modules.language import gs
+SUDO_HANDLER = CommandHandler(("addsudo", "adddragon"), addsudo, run_async=True)
+SUPPORT_HANDLER = CommandHandler(("addsupport", "adddemon"), addsupport, run_async=True)
+TIGER_HANDLER = CommandHandler(("addtiger"), addtiger, run_async=True)
+WHITELIST_HANDLER = CommandHandler(
+    ("addwhitelist", "addwolf"), addwhitelist, run_async=True
+)
+UNSUDO_HANDLER = CommandHandler(
+    ("removesudo", "removedragon"), removesudo, run_async=True
+)
+UNSUPPORT_HANDLER = CommandHandler(
+    ("removesupport", "removedemon"), removesupport, run_async=True
+)
+UNTIGER_HANDLER = CommandHandler(("removetiger"), removetiger, run_async=True)
+UNWHITELIST_HANDLER = CommandHandler(
+    ("removewhitelist", "removewolf"), removewhitelist, run_async=True
+)
 
-def get_help(chat):
-    return gs(chat, "nation_help")
-
-SUDO_HANDLER = CommandHandler(("addsudo", "adddragon"), addsudo)
-SUPPORT_HANDLER = CommandHandler(("addsupport", "adddemon"), addsupport)
-SD_HANDLER = CommandHandler(("addsardegna"), addsardegna)
-WHITELIST_HANDLER = CommandHandler(("addwhitelist", "addwolf"), addwhitelist)
-UNSUDO_HANDLER = CommandHandler(("removesudo", "removedragon"), removesudo)
-UNSUPPORT_HANDLER = CommandHandler(("removesupport", "removedemon"), removesupport)
-UNSD_HANDLER = CommandHandler(("removesardegna"), removesardegna)
-UNWHITELIST_HANDLER = CommandHandler(("removewhitelist", "removewolf"), removewhitelist)
+WHITELISTLIST_HANDLER = CommandHandler(
+    ["whitelistlist", "wolves"], whitelistlist, run_async=True
+)
+TIGERLIST_HANDLER = CommandHandler(["tigers"], tigerlist, run_async=True)
+SUPPORTLIST_HANDLER = CommandHandler(
+    ["supportlist", "demons"], supportlist, run_async=True
+)
+SUDOLIST_HANDLER = CommandHandler(["sudolist", "dragons"], sudolist, run_async=True)
+DEVLIST_HANDLER = CommandHandler(["devlist", "heroes"], devlist, run_async=True)
 
 dispatcher.add_handler(SUDO_HANDLER)
 dispatcher.add_handler(SUPPORT_HANDLER)
-dispatcher.add_handler(SD_HANDLER)
+dispatcher.add_handler(TIGER_HANDLER)
 dispatcher.add_handler(WHITELIST_HANDLER)
 dispatcher.add_handler(UNSUDO_HANDLER)
 dispatcher.add_handler(UNSUPPORT_HANDLER)
-dispatcher.add_handler(UNSD_HANDLER)
+dispatcher.add_handler(UNTIGER_HANDLER)
 dispatcher.add_handler(UNWHITELIST_HANDLER)
 
-
-WHITELISTLIST_HANDLER = CommandHandler(
-    ["whitelistlist", "neptunians"], whitelistlist, run_async=True
-)
-SARDEGNALIST_HANDLER = CommandHandler(["sardegnas"], Sardegnalist, run_async=True)
-SUPPORTLIST_HANDLER = CommandHandler(
-    ["supportlist", "sakuras"], supportlist, run_async=True
-)
-SUDOLIST_HANDLER = CommandHandler(["sudolist", "royals"], sudolist, run_async=True)
-DEVLIST_HANDLER = CommandHandler(["devlist", "eagle"], devlist, run_async=True)
-
 dispatcher.add_handler(WHITELISTLIST_HANDLER)
-dispatcher.add_handler(SARDEGNALIST_HANDLER)
+dispatcher.add_handler(TIGERLIST_HANDLER)
 dispatcher.add_handler(SUPPORTLIST_HANDLER)
 dispatcher.add_handler(SUDOLIST_HANDLER)
 dispatcher.add_handler(DEVLIST_HANDLER)
 
-__mod_name__ = "Nations"
+__mod_name__ = "Yuii"
 __handlers__ = [
     SUDO_HANDLER,
     SUPPORT_HANDLER,
-    SD_HANDLER,
+    TIGER_HANDLER,
     WHITELIST_HANDLER,
     UNSUDO_HANDLER,
     UNSUPPORT_HANDLER,
-    UNSD_HANDLER,
+    UNTIGER_HANDLER,
     UNWHITELIST_HANDLER,
     WHITELISTLIST_HANDLER,
-    SARDEGNALIST_HANDLER,
+    TIGERLIST_HANDLER,
     SUPPORTLIST_HANDLER,
     SUDOLIST_HANDLER,
     DEVLIST_HANDLER,

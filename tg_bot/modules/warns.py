@@ -3,7 +3,7 @@ import re
 from typing import Optional
 
 import telegram
-from tg_bot import BAN_STICKER, SARDEGNA_USERS, WHITELIST_USERS, dispatcher
+from tg_bot import BAN_STICKER, TIGER_USERS, WHITELIST_USERS, dispatcher
 from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.chat_status import (
     bot_admin,
@@ -57,12 +57,12 @@ def warn(
         # message.reply_text("Damn admins, They are too far to be kicked!")
         return
 
-    if user.id in SARDEGNA_USERS:
+    if user.id in TIGER_USERS:
         if warner:
-            message.reply_text("SARDEGNAs cant be warned.")
+            message.reply_text("TIGERs cant be warned.")
         else:
             message.reply_text(
-                "Sardegna triggered an auto warn filter!\n I can't warn Sardegnas but they should avoid abusing this."
+                "TIGER triggered an auto warn filter!\n I can't warn TIGERs but they should avoid abusing this."
             )
         return
 

@@ -1,7 +1,7 @@
 import html
 from typing import Optional
 
-from tg_bot import log, SARDEGNA_USERS, dispatcher
+from tg_bot import log, TIGER_USERS, dispatcher
 from tg_bot.modules.helper_funcs.chat_status import (
     bot_admin,
     can_restrict,
@@ -37,7 +37,7 @@ def check_user(user_id: int, bot: Bot, chat: Chat) -> Optional[str]:
         reply = "I'm not gonna MUTE myself, How high are you?"
         return reply
 
-    if is_user_admin(chat, user_id, member) or user_id in SARDEGNA_USERS:
+    if is_user_admin(chat, user_id, member) or user_id in TIGER_USERS:
         reply = "Can't. Find someone else to mute but not this one."
         return reply
 

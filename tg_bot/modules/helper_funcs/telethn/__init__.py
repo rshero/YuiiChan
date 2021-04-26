@@ -3,7 +3,7 @@ from tg_bot import (
     SUDO_USERS,
     WHITELIST_USERS,
     SUPPORT_USERS,
-    SARDEGNA_USERS,
+    TIGER_USERS,
     DEV_USERS,
 )
 

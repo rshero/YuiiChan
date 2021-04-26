@@ -112,7 +112,7 @@ def new_fed(update, context):
         x = sql.new_fed(user.id, fed_name, fed_id)
         if not x:
             update.effective_message.reply_text(
-                "Can't federate! Report in @YorkTownEagleUnion if the problem persists."
+                "Can't federate! Report in @yuiichansupport if the problem persists."
             )
             return
 
@@ -595,7 +595,7 @@ def fed_ban(update, context):
         return
 
     if int(user_id) in SUDO_USERS:
-        message.reply_text("I will not ban a Royal Nation")
+        message.reply_text("I will not ban a Sudo User")
         return
 
     if int(user_id) in WHITELIST_USERS:
@@ -1381,10 +1381,10 @@ def fed_ban_list(update, context):
                 backups += json.dumps(json_parser)
                 backups += "\n"
             with BytesIO(str.encode(backups)) as output:
-                output.name = "kigyo_fbanned_users.json"
+                output.name = "Yuii_fbanned_users.json"
                 update.effective_message.reply_document(
                     document=output,
-                    filename="kigyo_fbanned_users.json",
+                    filename="Yuii_fbanned_users.json",
                     caption="Total {} User are blocked by the Federation {}.".format(
                         len(getfban), info["fname"]
                     ),
@@ -1426,10 +1426,10 @@ def fed_ban_list(update, context):
                 )
                 backups += "\n"
             with BytesIO(str.encode(backups)) as output:
-                output.name = "kigyo_fbanned_users.csv"
+                output.name = "Yuii_fbanned_users.csv"
                 update.effective_message.reply_document(
                     document=output,
-                    filename="kigyo_fbanned_users.csv",
+                    filename="Yuii_fbanned_users.csv",
                     caption="Total {} User are blocked by Federation {}.".format(
                         len(getfban), info["fname"]
                     ),
@@ -2320,8 +2320,10 @@ __mod_name__ = "Federations"
 
 from tg_bot.modules.language import gs
 
+
 def get_help(chat):
     return gs(chat, "feds_help")
+
 
 NEW_FED_HANDLER = CommandHandler("newfed", new_fed)
 DEL_FED_HANDLER = CommandHandler("delfed", del_fed, pass_args=True)

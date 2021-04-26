@@ -11,7 +11,7 @@ from tg_bot import (
     OWNER_ID,
     SUDO_USERS,
     SUPPORT_USERS,
-    SARDEGNA_USERS,
+    TIGER_USERS,
     WHITELIST_USERS,
     sw,
     dispatcher,
@@ -198,7 +198,7 @@ def new_member(update: Update, context: CallbackContext):
             # Welcome Devs
             elif new_mem.id in DEV_USERS:
                 update.effective_message.reply_text(
-                    "Whoa! A member of the Eagle Union just joined!",
+                    "Whoa! A member of the Yuii Chan Club just joined!",
                     reply_to_message_id=reply,
                 )
                 continue
@@ -206,7 +206,7 @@ def new_member(update: Update, context: CallbackContext):
             # Welcome Sudos
             elif new_mem.id in SUDO_USERS:
                 update.effective_message.reply_text(
-                    "Huh! A Royal Nation just joined! Stay Alert!",
+                    "Huh! A Sudo User just joined! Stay Alert!",
                     reply_to_message_id=reply,
                 )
                 continue
@@ -214,29 +214,29 @@ def new_member(update: Update, context: CallbackContext):
             # Welcome Support
             elif new_mem.id in SUPPORT_USERS:
                 update.effective_message.reply_text(
-                    "Huh! Someone with a Sakura Nation level just joined!",
+                    "Huh! Someone with a Support level just joined!",
                     reply_to_message_id=reply,
                 )
                 continue
 
             # Welcome Whitelisted
-            elif new_mem.id in SARDEGNA_USERS:
+            elif new_mem.id in TIGER_USERS:
                 update.effective_message.reply_text(
-                    "Oof! A Sadegna Nation just joined!", reply_to_message_id=reply
+                    "Oof! A Tiger User just joined!", reply_to_message_id=reply
                 )
                 continue
 
-            # Welcome SARDEGNA_USERS
+            # Welcome TIGER_USERS
             elif new_mem.id in WHITELIST_USERS:
                 update.effective_message.reply_text(
-                    "Oof! A Neptuia Nation just joined!", reply_to_message_id=reply
+                    "Oof! A Whitelisted User joined!", reply_to_message_id=reply
                 )
                 continue
 
             # Welcome yourself
             elif new_mem.id == bot.id:
                 update.effective_message.reply_text(
-                    "Thanks for adding me! Join @YorkTownEagleUnion for support.",
+                    "Thanks for adding me! Join @yuiichansupport for support.",
                     reply_to_message_id=reply,
                 )
                 continue
@@ -506,7 +506,7 @@ def left_member(update: Update, context: CallbackContext):
             # Give the devs a special goodbye
             elif left_mem.id in DEV_USERS:
                 update.effective_message.reply_text(
-                    "See you later at the Eagle Union!",
+                    "See you later at the Yuii Chan Club!",
                     reply_to_message_id=reply,
                 )
                 return
@@ -1034,8 +1034,10 @@ def __chat_settings__(chat_id, user_id):
 
 from tg_bot.modules.language import gs
 
+
 def get_help(chat):
     return gs(chat, "greetings_help")
+
 
 NEW_MEM_HANDLER = MessageHandler(
     Filters.status_update.new_chat_members, new_member, run_async=True

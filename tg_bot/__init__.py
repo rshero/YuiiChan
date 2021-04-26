@@ -16,25 +16,29 @@ from ptbcontrib.postgres_persistence import PostgresPersistence
 
 StartTime = time.time()
 
+
 def get_user_list(__init__, key):
     with open("{}/tg_bot/{}".format(os.getcwd(), __init__), "r") as json_file:
         return json.load(json_file)[key]
 
+
 # enable logging
-FORMAT = "[Enterprise] %(message)s"
-logging.basicConfig(handlers=[RichHandler()], level=logging.INFO, format=FORMAT, datefmt="[%X]")
+FORMAT = "[✔] %(message)s"
+logging.basicConfig(
+    handlers=[RichHandler()], level=logging.INFO, format=FORMAT, datefmt="[%X]"
+)
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
 log = logging.getLogger("rich")
 
-log.info("[KIGYO] Kigyo is starting. | An Eagle Union Project. | Licensed under GPLv3.")
+log.info("[Yuii] Yuii is starting.S| Licensed under GPLv3.")
 
-log.info("[KIGYO] Not affiliated to Azur Lane or Yostar in any way whatsoever.")
-log.info("[KIGYO] Project maintained by: github.com/Dank-del (t.me/dank_as_fuck)")
+log.info("[Yuii] Not affiliated to Azur Lane or Yostar in any way whatsoever.")
+log.info("[Yuii] Project maintained by: github.com/rshero (t.me/rshero)")
 
 # if version < 3.6, stop bot.
 if sys.version_info[0] < 3 or sys.version_info[1] < 7:
     log.error(
-        "[KIGYO] You MUST have a python version of at least 3.7! Multiple features depend on this. Bot quitting."
+        "[Yuii] You MUST have a python version of at least 3.7! Multiple features depend on this. Bot quitting."
     )
     quit(1)
 
@@ -55,20 +59,17 @@ INFOPIC = kigconfig.getboolean("INFOPIC", False)
 DEL_CMDS = kigconfig.getboolean("DEL_CMDS", False)
 STRICT_GBAN = kigconfig.getboolean("STRICT_GBAN", False)
 ALLOW_EXCL = kigconfig.getboolean("ALLOW_EXCL", False)
-CUSTOM_CMD = ['/', '!']
+CUSTOM_CMD = ["/", "!"]
 BAN_STICKER = kigconfig.get("BAN_STICKER", None)
 TOKEN = kigconfig.get("TOKEN")
+NO_LOAD = []
 DB_URI = kigconfig.get("SQLALCHEMY_DATABASE_URI")
-LOAD = kigconfig.get("LOAD").split()
-LOAD = list(map(str, LOAD))
 MESSAGE_DUMP = kigconfig.getfloat("MESSAGE_DUMP")
 GBAN_LOGS = kigconfig.getfloat("GBAN_LOGS")
-NO_LOAD = kigconfig.get("NO_LOAD").split()
-NO_LOAD = list(map(str, NO_LOAD))
 SUDO_USERS = get_user_list("elevated_users.json", "sudos")
 DEV_USERS = get_user_list("elevated_users.json", "devs")
 SUPPORT_USERS = get_user_list("elevated_users.json", "supports")
-SARDEGNA_USERS = get_user_list("elevated_users.json", "sardegnas")
+TIGER_USERS = get_user_list("elevated_users.json", "tigers")
 WHITELIST_USERS = get_user_list("elevated_users.json", "whitelists")
 SPAMMERS = get_user_list("elevated_users.json", "spammers")
 spamwatch_api = kigconfig.get("spamwatch_api")
@@ -102,11 +103,22 @@ else:
 from tg_bot.modules.sql import SESSION
 
 
-updater = tg.Updater(TOKEN, workers=min(32, os.cpu_count() + 4), request_kwargs={"read_timeout": 10, "connect_timeout": 10}, persistence=PostgresPersistence(SESSION))
+updater = tg.Updater(
+    TOKEN,
+    workers=min(32, os.cpu_count() + 4),
+    request_kwargs={"read_timeout": 10, "connect_timeout": 10},
+    persistence=PostgresPersistence(SESSION),
+)
 telethn = TelegramClient(MemorySession(), APP_ID, API_HASH)
 dispatcher = updater.dispatcher
 
-kp = Client(":memory:", api_id=APP_ID, api_hash=API_HASH, bot_token=TOKEN, workers=min(32, os.cpu_count() + 4))
+kp = Client(
+    ":memory:",
+    api_id=APP_ID,
+    api_hash=API_HASH,
+    bot_token=TOKEN,
+    workers=min(32, os.cpu_count() + 4),
+)
 apps = []
 apps.append(kp)
 
@@ -142,7 +154,7 @@ SUDO_USERS = list(SUDO_USERS) + list(DEV_USERS)
 DEV_USERS = list(DEV_USERS)
 WHITELIST_USERS = list(WHITELIST_USERS)
 SUPPORT_USERS = list(SUPPORT_USERS)
-SARDEGNA_USERS = list(SARDEGNA_USERS)
+TIGER_USERS = list(TIGER_USERS)
 SPAMMERS = list(SPAMMERS)
 
 # Load at end to ensure all prev variables have been set
