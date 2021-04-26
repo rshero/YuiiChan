@@ -129,13 +129,11 @@ def gban(update: Update, context: CallbackContext):
         return
 
     if int(user_id) in SUPPORT_USERS:
-        message.reply_text(
-            "OOOH someone's trying to gban a support user! *grabs popcorn*"
-        )
+        message.reply_text("OOOH someone's trying to gban a Sudo! *grabs popcorn*")
         return
 
     if int(user_id) in TIGER_USERS:
-        message.reply_text("That's a TIGER! They cannot be banned!")
+        message.reply_text("That's a Sudo! They cannot be banned!")
         return
 
     if int(user_id) in WHITELIST_USERS:

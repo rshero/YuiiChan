@@ -59,7 +59,7 @@ def ban(update, context):
             raise
 
     if user_id == context.bot.id:
-        message.reply_text("Oh yeah, ban myself, noob!")
+        message.reply_text("Why are You being mean to me!")
         return log_message
 
     if is_user_ban_protected(chat, user_id, member) and user not in DEV_USERS:
@@ -152,7 +152,7 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
             raise
 
     if user_id == bot.id:
-        message.reply_text("I'm not gonna BAN myself, are you crazy?")
+        message.reply_text("Stop being mean to me!?")
         return log_message
 
     if is_user_ban_protected(chat, user_id, member):

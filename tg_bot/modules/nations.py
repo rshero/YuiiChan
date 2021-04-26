@@ -19,6 +19,7 @@ from tg_bot import (
 from tg_bot.modules.helper_funcs.chat_status import whitelist_plus, dev_plus, sudo_plus
 from tg_bot.modules.helper_funcs.extraction import extract_user
 from tg_bot.modules.log_channel import gloggable
+from tg_bot.modules.language import gs
 
 ELEVATED_USERS_FILE = os.path.join(os.getcwd(), "tg_bot/elevated_users.json")
 
@@ -501,6 +502,10 @@ def devlist(update: Update, context: CallbackContext):
         except TelegramError:
             pass
     update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
+
+
+def get_help(chat):
+    return gs(chat, "nation_help")
 
 
 SUDO_HANDLER = CommandHandler(("addsudo", "adddragon"), addsudo, run_async=True)

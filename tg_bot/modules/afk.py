@@ -1,6 +1,6 @@
 import html
 import random
-
+import time
 from telegram import Update, MessageEntity
 from telegram.ext import run_async
 from telegram.ext import Filters, CallbackContext, MessageHandler
@@ -12,6 +12,7 @@ from tg_bot.modules.disable import (
 )
 from tg_bot.modules.sql import afk_sql as sql
 from tg_bot.modules.users import get_user_id
+from tg_bot.modules.language import gs
 
 AFK_GROUP = 7
 AFK_REPLY_GROUP = 8
@@ -166,6 +167,10 @@ def get_readable_time(seconds: int) -> str:
     return ping_time
 
 
+def get_help(chat):
+    return gs(chat, "afk_help")
+
+
 AFK_HANDLER = DisableAbleCommandHandler("afk", afk, run_async=True)
 AFK_REGEX_HANDLER = DisableAbleMessageHandler(
     Filters.regex("(?i)brb"), afk, friendly="afk", run_async=True
@@ -178,8 +183,7 @@ NO_AFK_HANDLER = DisableAbleMessageHandler(
     run_async=True,
 )
 AFK_REPLY_HANDLER = DisableAbleMessageHandler(
-    (Filters.entity(MessageEntity.MENTION) | Filters.entity(MessageEntity.TEXT_MENTION))
-    & Filters.chat_type.groups,
+    Filters.all & Filters.chat_type.groups,
     reply_afk,
     friendly="afk",
     run_async=True,
