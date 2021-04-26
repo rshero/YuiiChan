@@ -438,7 +438,7 @@ def gbanlist(update: Update, context: CallbackContext):
         )
 
 
-def check_and_ban(update, user_id, should_message=True):
+def check_and_ban(bot, update, user_id, should_message=True):
 
     chat = update.effective_chat  # type: Optional[Chat]
 
@@ -458,10 +458,17 @@ def check_and_ban(update, user_id, should_message=True):
                 bl_res = status["results"]["attributes"]["blacklist_reason"]
                 update.effective_chat.kick_member(user_id)
                 if should_message:
-                    update.effective_message.reply_text(
-                        f"This person was blacklisted on @SpamProtectionBot and has been removed!\nReason: <code>{bl_res}</code>",
-                        parse_mode=ParseMode.HTML,
-                    )
+                    try:
+                        update.effective_message.reply_text(
+                            f"This person was blacklisted on @SpamProtectionBot and has been removed!\nReason: <code>{bl_res}</code>",
+                            parse_mode=ParseMode.HTML,
+                        )
+                    except:
+                        bot.send_message(
+                            chat.id,
+                            f"This <a href=tg://user?id={user_id}>person</a> was blacklisted on @SpamProtectionBot and has been removed!\nReason: <code>{bl_res}</code>",
+                            parse_mode=ParseMode.HTML,
+                        )
         except HostDownError:
             log.warning("Spam Protection API is unreachable.")
 
@@ -483,10 +490,17 @@ def check_and_ban(update, user_id, should_message=True):
     if sw_ban:
         update.effective_chat.kick_member(user_id)
         if should_message:
-            update.effective_message.reply_text(
-                f"This person has been detected as a spammer by @SpamWatch and has been removed!\nReason: <code>{sw_ban.reason}</code>",
-                parse_mode=ParseMode.HTML,
-            )
+            try:
+                update.effective_message.reply_text(
+                    f"This person has been detected as a spammer by @SpamWatch and has been removed!\nReason: <code>{sw_ban.reason}</code>",
+                    parse_mode=ParseMode.HTML,
+                )
+            except:
+                bot.send_message(
+                    chat.id,
+                    f"This <a href=tg://user?id={user_id}>person</a> has been detected as a spammer by @SpamWatch and has been removed!\nReason: <code>{sw_ban.reason}</code>",
+                    parse_mode=ParseMode.HTML,
+                )
         return
 
     if sql.is_user_gbanned(user_id):
@@ -516,18 +530,18 @@ def enforce_gban(update: Update, context: CallbackContext):
         msg = update.effective_message
 
         if user and not is_user_admin(chat, user.id):
-            check_and_ban(update, user.id)
+            check_and_ban(bot, update, user.id)
             return
 
         if msg.new_chat_members:
             new_members = update.effective_message.new_chat_members
             for mem in new_members:
-                check_and_ban(update, mem.id)
+                check_and_ban(bot, update, mem.id)
 
         if msg.reply_to_message:
             user = msg.reply_to_message.from_user
             if user and not is_user_admin(chat, user.id):
-                check_and_ban(update, user.id, should_message=False)
+                check_and_ban(bot, update, user.id, should_message=False)
 
 
 @user_admin
