@@ -1,6 +1,7 @@
 import importlib
 import re
 import json
+import time
 import traceback
 from typing import Optional, List
 from sys import argv
@@ -37,6 +38,7 @@ from tg_bot import (
     ALLOW_EXCL,
     telethn,
     kp,
+    StartTime,
 )
 
 # needed to dynamically load modules
@@ -45,6 +47,7 @@ from tg_bot.modules import ALL_MODULES
 from tg_bot.modules.helper_funcs.chat_status import is_user_admin
 from tg_bot.modules.helper_funcs.misc import paginate_modules
 from tg_bot.modules.disable import DisableAbleCommandHandler
+from tg_bot.modules.afk import get_readable_time
 from tg_bot.modules.language import gs
 
 PM_START_TEXT = """
@@ -167,6 +170,7 @@ def start(update: Update, context: CallbackContext):
     """
     chat = update.effective_chat
     args = context.args
+    uptime = get_readable_time((time.time() - StartTime))
     if update.effective_chat.type == "private":
         if len(args) >= 1:
             if args[0].lower() == "help":
@@ -231,7 +235,10 @@ def start(update: Update, context: CallbackContext):
                 ),
             )
     else:
-        update.effective_message.reply_text(gs(chat.id, "grp_start_text"))
+        update.effective_message.reply_text(
+            "Well I'm alive!\n<b>Working since:</b> <code>{}</code>".format(uptime),
+            parse_mode=ParseMode.HTML,
+        )
 
 
 # for test purposes
