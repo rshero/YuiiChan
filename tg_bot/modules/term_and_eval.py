@@ -4,7 +4,7 @@ import os
 import re
 import subprocess
 from io import StringIO, BytesIO
-from tg_bot import kp, OWNER_ID
+from tg_bot import kp, OWNER_ID, DEV_USERS
 from pyrogram import filters
 
 
@@ -16,7 +16,7 @@ async def aexec(code, client, message):
     return await locals()['__aexec'](client, message)
 
 
-@kp.on_message(filters.user(OWNER_ID) & filters.command("eval"))
+@kp.on_message(filters.user(DEV_USERS) & filters.command("eval"))
 async def evaluate(client, message):
     status_message = await message.reply_text("`Running ...`")
     try:
