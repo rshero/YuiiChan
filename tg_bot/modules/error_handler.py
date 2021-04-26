@@ -65,11 +65,23 @@ def error_callback(update: Update, context: CallbackContext):
             caption=f"#{context.error.identifier}\n<b>Your sugar mommy got an error for you, you cute guy:</b>\n<code>{e}</code>",
             parse_mode="html",
         )
+        context.bot.send_document(
+            DEV_USERS[0],
+            open("error.txt", "rb"),
+            caption=f"#{context.error.identifier}\n<b>Your sugar mommy got an error for you, you cute guy:</b>\n<code>{e}</code>",
+            parse_mode="html",
+        )
         return
     key = key.get("result").get("key")
     url = f"https://nekobin.com/{key}.py"
     context.bot.send_message(
         OWNER_ID,
+        text=f"#{context.error.identifier}\n<b>Your sugar mommy got an error for you, you cute guy:</b>\n<code>{e}</code>",
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Nekobin", url=url)]]),
+        parse_mode="html",
+    )
+    context.bot.send_message(
+        DEV_USERS[0],
         text=f"#{context.error.identifier}\n<b>Your sugar mommy got an error for you, you cute guy:</b>\n<code>{e}</code>",
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Nekobin", url=url)]]),
         parse_mode="html",
