@@ -173,7 +173,9 @@ def inlineinfo(query: str, update: Update, context: CallbackContext) -> None:
         nation_level_present = True
 
     if nation_level_present:
-        text += ' [<a href="https://t.me/yuiichansupport/3655">?</a>]'.format(bot.username)
+        text += '[<a href="https://t.me/yuiichansupport/3655">?</a>]'.format(
+            bot.username
+        )
 
     try:
         spamwtc = sw.get_ban(int(user.id))
