@@ -116,14 +116,8 @@ def warn(
 
     else:
         keyboard = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "🔘 Remove warn", callback_data="rm_warn({})".format(user.id)
-                    )
-                ]
-            ]
-        )
+            [[InlineKeyboardButton("Remove Warn", callback_data=f"report_{chat.id}=remove={user.id}={user.first_name}"), InlineKeyboardButton("Kick", callback_data=f"report_{chat.id}=kick={user.id}={user.first_name}")],
+              [InlineKeyboardButton(text="⚠️RULES⚠️",url="t.me/{}?start={}".format(dispatcher.bot.username, chat.id))]])
 
         reply = (
             f"<code>❕</code><b>Warn Event</b>\n"
@@ -159,31 +153,43 @@ def warn(
 @bot_admin
 @loggable
 def button(update: Update, context: CallbackContext) -> str:
-    query: Optional[CallbackQuery] = update.callback_query
-    user: Optional[User] = update.effective_user
-    match = re.match(r"rm_warn\((.+?)\)", query.data)
-    if match:
-        user_id = match.group(1)
-        chat: Optional[Chat] = update.effective_chat
-        res = sql.remove_warn(user_id, chat.id)
-        if res:
+     bot = context.bot
+    user = update.effective_user
+    chat = update.effective_chat
+    query = update.callback_query
+    splitter = query.data.replace("report_", "").split("=")
+    user_id = splitter[2]
+    if splitter[1] == "kick":
+        try:
+            bot.kickChatMember(splitter[0], splitter[2])
+            bot.unbanChatMember(splitter[0], splitter[2])
+            query.answer("Successfully Kicked.")
             update.effective_message.edit_text(
-                "Warn removed by {}.".format(mention_html(user.id, user.first_name)),
-                parse_mode=ParseMode.HTML,
-            )
-            user_member = chat.get_member(user_id)
-            return (
+                "User kicked by {}.".format(
+                    mention_html(user.id, user.first_name)),
+                parse_mode=ParseMode.HTML)
+            sql.reset_warns(splitter[2], splitter[0])
+            return ""
+        except Exception as err:
+            query.answer("Failed to Kick")
+    elif splitter[1] == "remove":
+              res = sql.remove_warn(splitter[2], splitter[0])
+              if res:
+                  update.effective_message.edit_text(
+                "Warn removed by {}.".format(
+                    mention_html(user.id, user.first_name)),
+                parse_mode=ParseMode.HTML)
+                  user_member = chat.get_member(user_id)
+                  return (
                 f"<b>{html.escape(chat.title)}:</b>\n"
                 f"#UNWARN\n"
                 f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
                 f"<b>User:</b> {mention_html(user_member.user.id, user_member.user.first_name)}"
             )
-        else:
-            update.effective_message.edit_text(
-                "User already has no warns.", parse_mode=ParseMode.HTML
-            )
-
-    return ""
+              else:
+                  update.effective_message.edit_text(
+                "User already has no warns.", parse_mode=ParseMode.HTML)
+              return ""
 
 
 @user_admin
@@ -504,7 +510,7 @@ WARN_HANDLER = CommandHandler("warn", warn_user, filters=Filters.chat_type.group
 RESET_WARN_HANDLER = CommandHandler(
     ["resetwarn", "resetwarns"], reset_warns, filters=Filters.chat_type.groups
 )
-CALLBACK_QUERY_HANDLER = CallbackQueryHandler(button, pattern=r"rm_warn")
+CALLBACK_QUERY_HANDLER = CallbackQueryHandler(button, pattern=r"report_")
 MYWARNS_HANDLER = DisableAbleCommandHandler(
     "warns", warns, filters=Filters.chat_type.groups
 )
