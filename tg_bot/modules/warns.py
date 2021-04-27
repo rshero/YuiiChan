@@ -170,8 +170,10 @@ def warn(
 @bot_admin
 @loggable
 def button(update: Update, context: CallbackContext) -> str:
-    query: Optional[CallbackQuery] = update.callback_query
-    user: Optional[User] = update.effective_user
+    bot = context.bot
+    user = update.effective_user
+    chat = update.effective_chat
+    query = update.callback_query
     splitter = query.data.replace("report_", "").split("=")
     user_id = splitter[2]
     if splitter[1] == "kick":
