@@ -63,14 +63,17 @@ def get_afk_time(user_id):
 
 def rm_afk(user_id):
     with INSERTION_LOCK:
-        curr = SESSION.query(AFK).get(user_id)
-        if curr:
-            if user_id in AFK_USERS:  # sanity check
-                del AFK_USERS[user_id]
+        try:
+            curr = SESSION.query(AFK).get(user_id)
+            if curr:
+                if user_id in AFK_USERS:  # sanity check
+                    del AFK_USERS[user_id]
 
-            SESSION.delete(curr)
-            SESSION.commit()
-            return True
+                SESSION.delete(curr)
+                SESSION.commit()
+                return True
+        except:
+            SESSION.rollback()
 
         SESSION.close()
         return False

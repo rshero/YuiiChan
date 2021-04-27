@@ -120,19 +120,23 @@ def chats(update: Update, context: CallbackContext):
             curr_chat = context.bot.getChat(chat.chat_id)
             bot_member = curr_chat.get_member(context.bot.id)
             chat_members = curr_chat.get_members_count(context.bot.id)
-            chatfile += "{}. {} | {} | {}\n".format(
-                P, chat.chat_name, chat.chat_id, chat_members
+            if bot_member.can_invite_users:
+                invitelink = context.bot.exportChatInviteLink(chat.chat_id)
+            else:
+                invitelink = "0"
+            chatfile += "{}. {} | {} | {} | {}\n".format(
+                P, chat.chat_name, chat.chat_id, chat_members, invitelink
             )
             P = P + 1
         except:
             pass
 
     with BytesIO(str.encode(chatfile)) as output:
-        output.name = "glist.txt"
+        output.name = "chatlist.txt"
         update.effective_message.reply_document(
             document=output,
-            filename="glist.txt",
-            caption="Here be the list of groups in my database.",
+            filename="chatlist.txt",
+            caption="Here is the list of chats in my database.",
         )
 
 
@@ -170,11 +174,11 @@ USER_HANDLER = MessageHandler(
 CHAT_CHECKER_HANDLER = MessageHandler(
     Filters.all & Filters.chat_type.groups, chat_checker, run_async=True
 )
-# CHATLIST_HANDLER = CommandHandler("chatlist", chats, run_async=True)
+CHATLIST_HANDLER = CommandHandler("chatlist", chats, run_async=True)
 
 dispatcher.add_handler(USER_HANDLER, USERS_GROUP)
 dispatcher.add_handler(BROADCAST_HANDLER)
-# dispatcher.add_handler(CHATLIST_HANDLER)
+dispatcher.add_handler(CHATLIST_HANDLER)
 dispatcher.add_handler(CHAT_CHECKER_HANDLER, CHAT_GROUP)
 
 __mod_name__ = "Users"

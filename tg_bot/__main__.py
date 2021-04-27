@@ -593,7 +593,10 @@ def migrate_chats(update: Update, context: CallbackContext):
 
     log.info("Migrating from %s, to %s", str(old_chat), str(new_chat))
     for mod in MIGRATEABLE:
-        mod.__migrate__(old_chat, new_chat)
+        try:
+            mod.__migrate__(old_chat, new_chat)
+        except:
+            pass
 
     log.info("Successfully migrated!")
     raise DispatcherHandlerStop
