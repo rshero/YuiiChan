@@ -53,6 +53,9 @@ CURRENT_WARNING_FILTER_STRING = "<b>Current warning filters in this chat:</b>\n"
 def warn(
     user: User, chat: Chat, reason: str, message: Message, warner: User = None
 ) -> str:
+    delete = False
+    if message.text.startswith("/dw"):
+        delete = True
     if is_user_admin(chat, user.id):
         # message.reply_text("Damn admins, They are too far to be kicked!")
         return
@@ -79,7 +82,6 @@ def warn(
         warner_tag = mention_html(warner.id, warner.first_name)
     else:
         warner_tag = "Automated warn filter."
-
     limit, soft_warn = sql.get_warn_setting(chat.id)
     num_warns, reasons = sql.warn_user(user.id, chat.id, reason)
     if num_warns >= limit:
@@ -154,7 +156,10 @@ def warn(
         )
 
     try:
-        message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML)
+        if delete:
+            message.delete()
+        else:
+            message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML)
     except BadRequest as excp:
         if excp.message == "Reply message not found":
             # Do not reply
@@ -524,7 +529,9 @@ def get_help(chat):
 
 __mod_name__ = "Warnings"
 
-WARN_HANDLER = CommandHandler("warn", warn_user, filters=Filters.chat_type.groups)
+WARN_HANDLER = CommandHandler(
+    ["warn", "dwarn"], warn_user, filters=Filters.chat_type.groups
+)
 RESET_WARN_HANDLER = CommandHandler(
     ["resetwarn", "resetwarns"], reset_warns, filters=Filters.chat_type.groups
 )

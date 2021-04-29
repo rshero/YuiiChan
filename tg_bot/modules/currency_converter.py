@@ -40,7 +40,9 @@ def convert(update: Update, context: CallbackContext):
         )
 
     elif len(args) == 1:
-        update.effective_message.reply_text(__help__, parse_mode=ParseMode.MARKDOWN)
+        update.effective_message.reply_text(
+            "example syntax: /cash 1 USD INR", parse_mode=ParseMode.MARKDOWN
+        )
 
     else:
         update.effective_message.reply_text(

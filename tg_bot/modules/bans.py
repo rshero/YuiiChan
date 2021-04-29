@@ -97,11 +97,13 @@ def ban(update, context):
     try:
         chat.kick_member(user_id)
         # context.bot.send_sticker(chat.id, BAN_STICKER)  # banhammer marie sticker
+        reply = (
+            f"<code>❕</code><b>Ban Event</b>\n"
+            f"<code> </code><b>•  User:</b> {mention_html(member.user.id, html.escape(member.user.first_name))}"
+        )
         context.bot.sendMessage(
             chat.id,
-            "let {} walk the plank.".format(
-                mention_html(member.user.id, member.user.first_name)
-            ),
+            reply,
             parse_mode=ParseMode.HTML,
         )
         return log
