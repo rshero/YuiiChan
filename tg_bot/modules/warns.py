@@ -249,7 +249,7 @@ def warn_user(update: Update, context: CallbackContext) -> str:
                 delete,
             )
         else:
-            return warn(chat.get_member(user_id).user, chat, reason, message, warner)
+            return warn(bot, chat.get_member(user_id).user, chat, reason, message, warner, delete)
     else:
         message.reply_text("That looks like an invalid User ID to me.")
     return ""
