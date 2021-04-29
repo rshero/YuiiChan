@@ -53,9 +53,6 @@ CURRENT_WARNING_FILTER_STRING = "<b>Current warning filters in this chat:</b>\n"
 def warn(
     user: User, chat: Chat, reason: str, message: Message, warner: User = None
 ) -> str:
-    delete = False
-    if message.text.startswith("/dw"):
-        delete = True
     if is_user_admin(chat, user.id):
         # message.reply_text("Damn admins, They are too far to be kicked!")
         return
@@ -156,10 +153,7 @@ def warn(
         )
 
     try:
-        if delete:
-            message.delete()
-        else:
-            message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML)
+        message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML)
     except BadRequest as excp:
         if excp.message == "Reply message not found":
             # Do not reply
@@ -223,9 +217,9 @@ def warn_user(update: Update, context: CallbackContext) -> str:
     message: Optional[Message] = update.effective_message
     chat: Optional[Chat] = update.effective_chat
     warner: Optional[User] = update.effective_user
-
     user_id, reason = extract_user_and_text(message, args)
-
+    if message.text.startswith("/d") and message.reply_to_message:
+        message.reply_to_message.delete()
     if user_id:
         if (
             message.reply_to_message
@@ -236,7 +230,7 @@ def warn_user(update: Update, context: CallbackContext) -> str:
                 chat,
                 reason,
                 message.reply_to_message,
-                warner,
+                warner
             )
         else:
             return warn(chat.get_member(user_id).user, chat, reason, message, warner)
