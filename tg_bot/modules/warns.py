@@ -51,7 +51,13 @@ CURRENT_WARNING_FILTER_STRING = "<b>Current warning filters in this chat:</b>\n"
 
 # Not async
 def warn(
-    user: User, chat: Chat, reason: str, message: Message, warner: User = None
+    bot,
+    user: User,
+    chat: Chat,
+    reason: str,
+    message: Message,
+    warner: User = None,
+    delete=False,
 ) -> str:
     if is_user_admin(chat, user.id):
         # message.reply_text("Damn admins, They are too far to be kicked!")
@@ -153,12 +159,17 @@ def warn(
         )
 
     try:
-        message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML)
+        if delete:
+            bot.send_message(
+                chat.id, reply, reply_markup=keyboard, parse_mode=ParseMode.HTML
+            )
+        else:
+            message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML)
     except BadRequest as excp:
         if excp.message == "Reply message not found":
             # Do not reply
-            message.reply_text(
-                reply, reply_markup=keyboard, parse_mode=ParseMode.HTML, quote=False
+            bot.send_message(
+                chat.id, reply, reply_markup=keyboard, parse_mode=ParseMode.HTML
             )
         else:
             raise
@@ -214,23 +225,28 @@ def button(update: Update, context: CallbackContext) -> str:
 @loggable
 def warn_user(update: Update, context: CallbackContext) -> str:
     args = context.args
+    bot = context.bot
     message: Optional[Message] = update.effective_message
     chat: Optional[Chat] = update.effective_chat
     warner: Optional[User] = update.effective_user
+    delete = False
     user_id, reason = extract_user_and_text(message, args)
     if message.text.startswith("/d") and message.reply_to_message:
         message.reply_to_message.delete()
+        delete = True
     if user_id:
         if (
             message.reply_to_message
             and message.reply_to_message.from_user.id == user_id
         ):
             return warn(
+                bot,
                 message.reply_to_message.from_user,
                 chat,
                 reason,
                 message.reply_to_message,
-                warner
+                warner,
+                delete,
             )
         else:
             return warn(chat.get_member(user_id).user, chat, reason, message, warner)
