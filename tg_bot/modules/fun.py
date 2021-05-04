@@ -89,13 +89,13 @@ def hug(update: Update, context: CallbackContext):
     if "@" in msg and len(msg) > 5:
         context.bot.send_animation(
             chat_id,
-            fun_strings.HUGS_GIF,
+            random.choice(fun_strings.HUGS_GIF),
             caption=msg,
         )
     else:
         context.bot.send_animation(
             chat_id,
-            fun_strings.HUGS_GIF,
+            random.choice(fun_strings.HUGS_GIF),
             reply_to_message_id=msg_id,
         )
 
