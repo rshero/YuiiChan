@@ -75,7 +75,29 @@ def slap(update: Update, context: CallbackContext):
 
 
 def hug(update: Update, context: CallbackContext):
-    update.effective_message.reply_animation(random.choice(fun_strings.HUGS_GIF))
+    chat_id = update.effective_chat.id
+    msg = str(update.message.text)
+    try:
+        msg = msg.split(" ", 1)[1]
+    except IndexError:
+        msg = ""
+    msg_id = (
+        update.effective_message.reply_to_message.message_id
+        if update.effective_message.reply_to_message
+        else update.effective_message.message_id
+    )
+    if "@" in msg and len(msg) > 5:
+        context.bot.send_animation(
+            chat_id,
+            fun_strings.HUGS_GIF,
+            caption=msg,
+        )
+    else:
+        context.bot.send_animation(
+            chat_id,
+            fun_strings.HUGS_GIF,
+            reply_to_message_id=msg_id,
+        )
 
 
 def pat(update: Update, context: CallbackContext):
