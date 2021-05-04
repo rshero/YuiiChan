@@ -74,6 +74,10 @@ def slap(update: Update, context: CallbackContext):
     reply_text(reply, parse_mode=ParseMode.HTML)
 
 
+def hug(update: Update, context: CallbackContext):
+    update.effective_message.reply_animation(random.choice(fun_strings.HUGS_GIF))
+
+
 def pat(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     msg = str(update.message.text)
@@ -176,7 +180,7 @@ RLG_HANDLER = DisableAbleCommandHandler("rlg", rlg, run_async=True)
 DECIDE_HANDLER = DisableAbleCommandHandler("decide", decide, run_async=True)
 TABLE_HANDLER = DisableAbleCommandHandler("table", table, run_async=True)
 PAT_HANDLER = DisableAbleCommandHandler("pat", pat, run_async=True)
-
+HUG_HANDLER = DisableAbleCommandHandler("hug", hug, run_async=True)
 
 dispatcher.add_handler(RUNS_HANDLER)
 dispatcher.add_handler(SLAP_HANDLER)
@@ -187,6 +191,7 @@ dispatcher.add_handler(RLG_HANDLER)
 dispatcher.add_handler(DECIDE_HANDLER)
 dispatcher.add_handler(TABLE_HANDLER)
 dispatcher.add_handler(PAT_HANDLER)
+dispatcher.add_handler(HUG_HANDLER)
 
 __mod_name__ = "Fun"
 __command_list__ = [
@@ -199,6 +204,7 @@ __command_list__ = [
     "decide",
     "table",
     "pat",
+    "hug",
 ]
 __handlers__ = [
     RUNS_HANDLER,
@@ -210,4 +216,5 @@ __handlers__ = [
     DECIDE_HANDLER,
     TABLE_HANDLER,
     PAT_HANDLER,
+    HUG_HANDLER,
 ]
