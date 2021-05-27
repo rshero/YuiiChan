@@ -3,6 +3,7 @@ import random
 import re
 import time
 from functools import partial
+from typing import Tuple, Optional
 
 import tg_bot.modules.sql.welcome_sql as sql
 from tg_bot import (
@@ -15,6 +16,7 @@ from tg_bot import (
     WHITELIST_USERS,
     sw,
     dispatcher,
+    telethn,
 )
 from tg_bot.modules.helper_funcs.chat_status import (
     is_user_ban_protected,
@@ -34,6 +36,8 @@ from telegram import (
     InlineKeyboardMarkup,
     ParseMode,
     Update,
+    ChatMemberUpdated,
+    ChatMember,
 )
 from telegram.error import BadRequest
 from telegram.ext import (
@@ -43,8 +47,10 @@ from telegram.ext import (
     Filters,
     MessageHandler,
     run_async,
+    ChatMemberHandler,
 )
 from telegram.utils.helpers import escape_markdown, mention_html, mention_markdown
+from telethon import events
 
 VALID_WELCOME_FORMATTERS = [
     "first",
@@ -71,20 +77,50 @@ ENUM_FUNC_MAP = {
 VERIFIED_USER_WAITLIST = {}
 
 
+def extract_status_change(
+    chat_member_update: ChatMemberUpdated,
+) -> Optional[Tuple[bool, bool]]:
+    """Takes a ChatMemberUpdated instance and extracts whether the 'old_chat_member' was a member
+    of the chat and whether the 'new_chat_member' is a member of the chat. Returns None, if
+    the status didn't change."""
+    status_change = chat_member_update.difference().get("status")
+    old_is_member, new_is_member = chat_member_update.difference().get(
+        "is_member", (None, None)
+    )
+
+    if status_change is None:
+        return None
+
+    old_status, new_status = status_change
+    was_member = (
+        old_status
+        in [
+            ChatMember.MEMBER,
+            ChatMember.CREATOR,
+            ChatMember.ADMINISTRATOR,
+        ]
+        or (old_status == ChatMember.RESTRICTED and old_is_member is True)
+    )
+    is_member = (
+        new_status
+        in [
+            ChatMember.MEMBER,
+            ChatMember.CREATOR,
+            ChatMember.ADMINISTRATOR,
+        ]
+        or (new_status == ChatMember.RESTRICTED and new_is_member is True)
+    )
+
+    return was_member, is_member
+
+
 # do not async
 def send(update, message, keyboard, backup_message):
     chat = update.effective_chat
-    cleanserv = sql.clean_service(chat.id)
-    reply = update.message.message_id
-    # Clean service welcome
-    if cleanserv:
-        try:
-            dispatcher.bot.delete_message(chat.id, update.message.message_id)
-        except BadRequest:
-            pass
-        reply = False
+    reply = None
+
     try:
-        msg = update.effective_message.reply_text(
+        msg = update.effective_chat.send_message(
             message,
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=keyboard,
@@ -92,14 +128,14 @@ def send(update, message, keyboard, backup_message):
         )
     except BadRequest as excp:
         if excp.message == "Reply message not found":
-            msg = update.effective_message.reply_text(
+            msg = update.effective_chat.send_message(
                 message,
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=keyboard,
                 quote=False,
             )
         elif excp.message == "Button_url_invalid":
-            msg = update.effective_message.reply_text(
+            msg = update.effective_chat.send_message(
                 markdown_parser(
                     backup_message + "\nNote: the current message has an invalid url "
                     "in one of its buttons. Please update."
@@ -108,7 +144,7 @@ def send(update, message, keyboard, backup_message):
                 reply_to_message_id=reply,
             )
         elif excp.message == "Unsupported url protocol":
-            msg = update.effective_message.reply_text(
+            msg = update.effective_chat.send_message(
                 markdown_parser(
                     backup_message + "\nNote: the current message has buttons which "
                     "use url protocols that are unsupported by "
@@ -118,7 +154,7 @@ def send(update, message, keyboard, backup_message):
                 reply_to_message_id=reply,
             )
         elif excp.message == "Wrong url host":
-            msg = update.effective_message.reply_text(
+            msg = update.effective_chat.send_message(
                 markdown_parser(
                     backup_message + "\nNote: the current message has some bad urls. "
                     "Please update."
@@ -132,7 +168,7 @@ def send(update, message, keyboard, backup_message):
         elif excp.message == "Have no rights to send a message":
             return
         else:
-            msg = update.effective_message.reply_text(
+            msg = update.effective_chat.send_message(
                 markdown_parser(
                     backup_message + "\nNote: An error occured when sending the "
                     "custom message. Please update."
@@ -144,21 +180,21 @@ def send(update, message, keyboard, backup_message):
     return msg
 
 
-@loggable
 def new_member(update: Update, context: CallbackContext):
     bot, job_queue = context.bot, context.job_queue
     chat = update.effective_chat
     user = update.effective_user
     msg = update.effective_message
+    result = extract_status_change(update.chat_member)
+    if result is None:
+        return
 
+    was_member, is_member = result
     should_welc, cust_welcome, cust_content, welc_type = sql.get_welc_pref(chat.id)
     welc_mutes = sql.welcome_mutes(chat.id)
     human_checks = sql.get_human_checks(user.id, chat.id)
-
-    new_members = update.effective_message.new_chat_members
-
-    for new_mem in new_members:
-
+    if not was_member and is_member:
+        new_mem = update.chat_member.new_chat_member.user
         welcome_log = None
         res = None
         sent = None
@@ -173,19 +209,11 @@ def new_member(update: Update, context: CallbackContext):
 
         if should_welc:
 
-            reply = update.message.message_id
-            cleanserv = sql.clean_service(chat.id)
-            # Clean service welcome
-            if cleanserv:
-                try:
-                    dispatcher.bot.delete_message(chat.id, update.message.message_id)
-                except BadRequest:
-                    pass
-                reply = False
+            reply = None
 
             # Give the owner a special welcome
             if new_mem.id == OWNER_ID:
-                update.effective_message.reply_text(
+                update.effective_chat.send_message(
                     "Oh hi, my creator.", reply_to_message_id=reply
                 )
                 welcome_log = (
@@ -193,53 +221,46 @@ def new_member(update: Update, context: CallbackContext):
                     f"#USER_JOINED\n"
                     f"Bot Owner just joined the chat"
                 )
-                continue
 
             # Welcome Devs
             elif new_mem.id in DEV_USERS:
-                update.effective_message.reply_text(
+                update.effective_chat.send_message(
                     "Whoa! A member of the Yuii Chan Club just joined!",
                     reply_to_message_id=reply,
                 )
-                continue
 
             # Welcome Sudos
             elif new_mem.id in SUDO_USERS:
-                update.effective_message.reply_text(
+                update.effective_chat.send_message(
                     "Huh! A Sudo User just joined! Stay Alert!",
                     reply_to_message_id=reply,
                 )
-                continue
 
             # Welcome Support
             elif new_mem.id in SUPPORT_USERS:
-                update.effective_message.reply_text(
+                update.effective_chat.send_message(
                     "Huh! Someone with a Support level just joined!",
                     reply_to_message_id=reply,
                 )
-                continue
 
             # Welcome Whitelisted
             elif new_mem.id in TIGER_USERS:
-                update.effective_message.reply_text(
+                update.effective_chat.send_message(
                     "Oof! A Tiger User just joined!", reply_to_message_id=reply
                 )
-                continue
 
             # Welcome TIGER_USERS
             elif new_mem.id in WHITELIST_USERS:
-                update.effective_message.reply_text(
+                update.effective_chat.send_message(
                     "Oof! A Whitelisted User joined!", reply_to_message_id=reply
                 )
-                continue
 
             # Welcome yourself
             elif new_mem.id == bot.id:
-                update.effective_message.reply_text(
+                update.effective_chat.send_message(
                     "Thanks for adding me! Join @yuiichansupport for support.",
                     reply_to_message_id=reply,
                 )
-                continue
 
             else:
                 buttons = sql.get_welc_buttons(chat.id)
@@ -361,7 +382,7 @@ def new_member(update: Update, context: CallbackContext):
                             }
                         )
                     new_join_mem = f"[{escape_markdown(new_mem.first_name)}](tg://user?id={user.id})"
-                    message = msg.reply_text(
+                    message = update.effective_chat.send_message(
                         f"{new_join_mem}, click the button below to prove you're human.\nYou have 120 seconds.",
                         reply_markup=InlineKeyboardMarkup(
                             [
@@ -374,7 +395,7 @@ def new_member(update: Update, context: CallbackContext):
                             ]
                         ),
                         parse_mode=ParseMode.MARKDOWN,
-                        reply_to_message_id=reply,
+                        reply_to_message_id=None,
                     )
                     bot.restrict_chat_member(
                         chat.id,
@@ -403,7 +424,7 @@ def new_member(update: Update, context: CallbackContext):
                         chat.id,
                         cust_content,
                         reply_markup=keyboard,
-                        reply_to_message_id=reply,
+                        reply_to_message_id=None,
                     )
                 else:
                     sent = ENUM_FUNC_MAP[welc_type](
@@ -411,7 +432,7 @@ def new_member(update: Update, context: CallbackContext):
                         cust_content,
                         caption=res,
                         reply_markup=keyboard,
-                        reply_to_message_id=reply,
+                        reply_to_message_id=None,
                         parse_mode="markdown",
                     )
             else:
@@ -436,8 +457,6 @@ def new_member(update: Update, context: CallbackContext):
             f"<b>ID</b>: <code>{user.id}</code>"
         )
 
-    return ""
-
 
 def check_not_bot(member, chat_id, message_id, context):
     bot = context.bot
@@ -457,6 +476,15 @@ def check_not_bot(member, chat_id, message_id, context):
             )
         except:
             pass
+
+
+# cleanservice
+@telethn.on(events.ChatAction)
+async def delete_service(event):
+    clean = sql.clean_service(event.chat_id)
+    if not clean:
+        return
+    await event.delete()
 
 
 def left_member(update: Update, context: CallbackContext):
@@ -865,7 +893,7 @@ def clean_welcome(update: Update, context: CallbackContext) -> str:
 @user_admin
 def cleanservice(update: Update, context: CallbackContext) -> str:
     args = context.args
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     if chat.type != chat.PRIVATE:
         if len(args) >= 1:
             var = args[0]
@@ -1039,9 +1067,7 @@ def get_help(chat):
     return gs(chat, "greetings_help")
 
 
-NEW_MEM_HANDLER = MessageHandler(
-    Filters.status_update.new_chat_members, new_member, run_async=True
-)
+NEW_MEM_HANDLER = ChatMemberHandler(new_member, ChatMemberHandler.CHAT_MEMBER)
 LEFT_MEM_HANDLER = MessageHandler(
     Filters.status_update.left_chat_member, left_member, run_async=True
 )
