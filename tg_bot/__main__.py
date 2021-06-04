@@ -645,7 +645,7 @@ def main():
 
     else:
         log.info(
-            f"Zer0Byte started, Using long polling. | BOT: [@{dispatcher.bot.username}]"
+            f"Yuii started, Using long polling. | BOT: [@{dispatcher.bot.username}]"
         )
         updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=True)
     if len(argv) not in (1, 3, 4):
@@ -657,7 +657,7 @@ def main():
 
 if __name__ == "__main__":
     kp.start()
-    log.info("[Zer0Byte] Successfully loaded modules: " + str(ALL_MODULES))
+    log.info("[Yuii] Successfully loaded modules: " + str(ALL_MODULES))
     telethn.start(bot_token=TOKEN)
     main()
     idle()
