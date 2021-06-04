@@ -52,7 +52,7 @@ from tg_bot.modules.language import gs
 
 PM_START_TEXT = """
 Hi {}, my name is {}!
-I am an Anime themed group management bot with some fun extras [;)](https://telegra.ph/file/095d7e696096e21b06447.jpg)
+ I can manage your group with lots of useful features, feel free to add me to your group.    [;)](https://telegra.ph/file/7a59c5605ee6b4c3fd602.jpg)
 
 You can find the list of available commands with /help.
 """
@@ -60,7 +60,7 @@ You can find the list of available commands with /help.
 HELP_STRINGS = """
 Hey there! My name is *{}*.
 I'll be at your service take a look below to know how to use me.
-If you have any questions on how to use me, head over to @YuiiChanSupport
+If you have any questions on how to use me, head over to @Zer0ByteMusicDeveloperBot
 *Main* commands available:
  • /start: start the bot
  • /help: PM's you this message.
@@ -77,7 +77,7 @@ And the following:
 )
 
 
-Yuii_IMG = "https://telegra.ph/file/145c818a6b4e5bc92765d.jpg"
+Yuii_IMG = "https://telegra.ph/file/7a59c5605ee6b4c3fd602.jpg"
 
 
 IMPORTED = {}
@@ -645,7 +645,7 @@ def main():
 
     else:
         log.info(
-            f"Yuii started, Using long polling. | BOT: [@{dispatcher.bot.username}]"
+            f"Zer0Byte started, Using long polling. | BOT: [@{dispatcher.bot.username}]"
         )
         updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=True)
     if len(argv) not in (1, 3, 4):
@@ -657,7 +657,7 @@ def main():
 
 if __name__ == "__main__":
     kp.start()
-    log.info("[Yuii] Successfully loaded modules: " + str(ALL_MODULES))
+    log.info("[Zer0Byte] Successfully loaded modules: " + str(ALL_MODULES))
     telethn.start(bot_token=TOKEN)
     main()
     idle()
