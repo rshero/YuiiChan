@@ -6,7 +6,8 @@ import urllib.request as urllib
 from PIL import Image
 from html import escape
 from bs4 import BeautifulSoup as bs
-
+import cloudscraper
+from collections import OrderedDict
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram import TelegramError, Update
 from telegram.ext import CallbackContext
@@ -44,15 +45,18 @@ def cb_sticker(update: Update, context: CallbackContext):
     if len(split) == 1:
         msg.reply_text("Provide some name to search for pack.")
         return
-    text = requests.get(combot_stickers_url + split[1]).text
-    soup = bs(text, "lxml")
+    scraper = cloudscraper.create_scraper()
+    text = scraper.get(combot_stickers_url + split[1]).text
+    soup = bs(text, "html.parser")
     results = soup.find_all("a", {"class": "sticker-pack__btn"})
     titles = soup.find_all("div", "sticker-pack__title")
+    r = list(OrderedDict.fromkeys(results))
+    t = list(OrderedDict.fromkeys(titles))
     if not results:
         msg.reply_text("No results found :(.")
         return
     reply = f"Stickers for *{split[1]}*:"
-    for result, title in zip(results, titles):
+    for result, title in zip(r, t):
         link = result["href"]
         reply += f"\n• [{title.get_text()}]({link})"
     msg.reply_text(reply, parse_mode=ParseMode.MARKDOWN)
@@ -449,9 +453,9 @@ GETSTICKER_HANDLER = DisableAbleCommandHandler("getsticker", getsticker, run_asy
 KANG_HANDLER = DisableAbleCommandHandler(
     ["steal", "kang"], kang, admin_ok=True, run_async=True
 )
-STICKERS_HANDLER = DisableAbleCommandHandler("stickers", cb_sticker, run_async=True)
+#STICKERS_HANDLER = DisableAbleCommandHandler("stickers", cb_sticker, run_async=True)
 
-dispatcher.add_handler(STICKERS_HANDLER)
+#dispatcher.add_handler(STICKERS_HANDLER)
 dispatcher.add_handler(STICKERID_HANDLER)
 dispatcher.add_handler(GETSTICKER_HANDLER)
 dispatcher.add_handler(KANG_HANDLER)
