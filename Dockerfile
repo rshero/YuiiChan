@@ -66,7 +66,7 @@ RUN pip3 install --upgrade pip setuptools
 RUN git clone https://github.com/rshero/YuiiChan /root/yui
 WORKDIR /root/yui
 
-ENV PATH="/root/yui/bin:$PATH"
+ENV PATH="/root/bot/bin:$PATH"
 
 # Install requirements
 RUN pip3 install -U -r requirements.txt
