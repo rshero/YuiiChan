@@ -1,0 +1,16 @@
+---
+application:
+  name: "yuiichan"
+  project: "yui"
+  organization: "QoveryCommunity"
+  storage:
+  - name: "yui"
+    size: "10"
+    type: "fast_ssd"
+    mount_point: "/mnt/yui"
+routers:
+- name: "main-yuiichan"
+  routes:
+  - application_name: "yuiichan"
+    paths:
+    - "/*"
