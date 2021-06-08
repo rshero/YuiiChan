@@ -27,6 +27,7 @@ from telegram.ext import (
     MessageHandler,
 )
 from telegram.ext.dispatcher import run_async
+from tg_bot.modules.helper_funcs.alternate import send_message
 
 JOIN_LOGGER = None
 FILE_MATCHER = re.compile(r"^###file_id(!photo)?###:(.*?)(?:\s|$)")
@@ -50,7 +51,152 @@ ENUM_FUNC_MAP = {
     sql.Types.VIDEO.value: dispatcher.bot.send_video,
 }
 
+def private_get(context, update, notename, chat_id, u, m, show_none=False, no_format=False):
+    bot = context.bot
+    note = sql.get_note(chat_id, notename)
+    message = m
+    if note:
+        reply_id = m.message_id
 
+        if note.is_reply:
+            if JOIN_LOGGER:
+                try:
+                    bot.forward_message(
+                        chat_id=chat_id, from_chat_id=JOIN_LOGGER, message_id=note.value
+                    )
+                except BadRequest as excp:
+                    if excp.message == "Message to forward not found":
+                        message.reply_text(
+                            "This message seems to have been lost - I'll remove it "
+                            "from your notes list."
+                        )
+                        sql.rm_note(chat_id, notename)
+                    else:
+                        raise
+            else:
+                try:
+                    bot.forward_message(
+                        chat_id=chat_id, from_chat_id=chat_id, message_id=note.value
+                    )
+                except BadRequest as excp:
+                    if excp.message == "Message to forward not found":
+                        message.reply_text(
+                            "Looks like the original sender of this note has deleted "
+                            "their message - sorry! Get your bot admin to start using a "
+                            "message dump to avoid this. I'll remove this note from "
+                            "your saved notes."
+                        )
+                        sql.rm_note(chat_id, notename)
+                    else:
+                        raise
+        else:
+            VALID_NOTE_FORMATTERS = [
+                "first",
+                "last",
+                "fullname",
+                "username",
+                "id",
+                "chatname",
+                "mention",
+            ]
+            valid_format = escape_invalid_curly_brackets(
+                note.value, VALID_NOTE_FORMATTERS
+            )
+            if valid_format:
+                text = valid_format.format(
+                    first=escape_markdown(message.from_user.first_name),
+                    last=escape_markdown(
+                        message.from_user.last_name or message.from_user.first_name
+                    ),
+                    fullname=escape_markdown(
+                        " ".join(
+                            [message.from_user.first_name, message.from_user.last_name]
+                            if message.from_user.last_name
+                            else [message.from_user.first_name]
+                        )
+                    ),
+                    username="@" + message.from_user.username
+                    if message.from_user.username
+                    else mention_markdown(
+                        message.from_user.id, message.from_user.first_name
+                    ),
+                    mention=mention_markdown(
+                        message.from_user.id, message.from_user.first_name
+                    ),
+                    chatname=escape_markdown(
+                        message.chat.title
+                        if message.chat.type != "private"
+                        else message.from_user.first_name
+                    ),
+                    id=message.from_user.id,
+                )
+            else:
+                text = ""
+
+            keyb = []
+            parseMode = ParseMode.MARKDOWN
+            buttons = sql.get_buttons(chat_id, notename)
+            if no_format:
+                parseMode = None
+                text += revert_buttons(buttons)
+            else:
+                keyb = build_keyboard(buttons)
+
+            keyboard = InlineKeyboardMarkup(keyb)
+
+            try:
+                if note.msgtype in (sql.Types.BUTTON_TEXT, sql.Types.TEXT):
+                    bot.send_message(
+                        u,
+                        text,
+                        reply_to_message_id=reply_id,
+                        parse_mode=parseMode,
+                        reply_markup=keyboard,
+                    )
+                else:
+                    if ENUM_FUNC_MAP[note.msgtype] == dispatcher.bot.send_sticker:
+                        ENUM_FUNC_MAP[note.msgtype](
+                            chat_id,
+                            note.file,
+                            reply_to_message_id=reply_id,
+                            reply_markup=keyboard,
+                        )
+                    else:
+                        ENUM_FUNC_MAP[note.msgtype](
+                            chat_id,
+                            note.file,
+                            caption=text,
+                            reply_to_message_id=reply_id,
+                            parse_mode=parseMode,
+                            reply_markup=keyboard,
+                        )
+
+            except BadRequest as excp:
+                if excp.message == "Entity_mention_user_invalid":
+                    message.reply_text(
+                        "Looks like you tried to mention someone I've never seen before. If you really "
+                        "want to mention them, forward one of their messages to me, and I'll be able "
+                        "to tag them!"
+                    )
+                elif FILE_MATCHER.match(note.value):
+                    message.reply_text(
+                        "This note was an incorrectly imported file from another bot - I can't use "
+                        "it. If you really need it, you'll have to save it again. In "
+                        "the meantime, I'll remove it from your notes list."
+                    )
+                    sql.rm_note(chat_id, notename)
+                else:
+                    message.reply_text(
+                        "This note could not be sent, as it is incorrectly formatted. Ask in "
+                        f"@yuiichansupport if you can't figure out why!"
+                    )
+                    log.exception(
+                        "Could not parse message #%s in chat %s", notename, str(chat_id)
+                    )
+                    log.warning("Message was: %s", str(note.value))
+        return
+    elif show_none:
+        message.reply_text("This note doesn't exist")
 # Do not async
 @connection_status
 def get(update, context, notename, show_none=True, no_format=False):
@@ -210,20 +356,87 @@ def get(update, context, notename, show_none=True, no_format=False):
 @connection_status
 def cmd_get(update: Update, context: CallbackContext):
     bot, args = context.bot, context.args
+    chat = update.effective_chat
+    note = sql.get_note(chat.id, args[0])
+    if not note:
+        send_message(
+            update.effective_message, "This note does not exist",
+        )
+        return
+    is_private, is_delete = sql.get_private_note(chat.id)
     if len(args) >= 2 and args[1].lower() == "noformat":
-        get(update, context, args[0].lower(), show_none=True, no_format=True)
+        if is_private:
+            buttons = InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            text="Click me!",
+                            url=f"http://t.me/YuiiChanBot?start=notes_{chat.id}={args[0]}",
+                        )
+                    ]
+                ]
+            )
+            update.effective_message.reply_text(
+                f"Tap here to view '{args[0]}' in your private chat.",
+                parse_mode=None,
+                disable_web_page_preview=True,
+                reply_markup=buttons,
+            )
+        else:
+            get(update, context, args[0], no_format=True)
     elif len(args) >= 1:
-        get(update, context, args[0].lower(), show_none=True)
+        if is_private:
+            buttons = InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            text="Click me!",
+                            url=f"http://t.me/YuiiChanBot?start=notes_{chat.id}={args[0]}",
+                        )
+                    ]
+                ]
+            )
+            update.effective_message.reply_text(
+                f"Tap here to view '{args[0]}' in your private chat.",
+                parse_mode=None,
+                disable_web_page_preview=True,
+                reply_markup=buttons,
+            )
+        else:
+            get(update, context, args[0])
     else:
-        update.effective_message.reply_text("Get rekt")
+        send_message(update.effective_message, "Get what?")
 
 
 @connection_status
 def hash_get(update: Update, context: CallbackContext):
     message = update.effective_message.text
+    chat = update.effective_chat
+    is_private, is_delete = sql.get_private_note(chat.id)
     fst_word = message.split()[0]
-    no_hash = fst_word[1:].lower()
-    get(update, context, no_hash, show_none=False)
+    no_hash = fst_word[1:]
+    note = sql.get_note(chat.id, no_hash)
+    if not note:
+        return
+    if is_private:
+        buttons = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        text="Click me!",
+                        url=f"http://t.me/YuiiChanBot?start=notes_{chat.id}={no_hash}",
+                    )
+                ]
+            ]
+        )
+        update.effective_message.reply_text(
+            f"Tap here to view '{no_hash}' in your private chat.",
+            parse_mode=None,
+            disable_web_page_preview=True,
+            reply_markup=buttons,
+        )
+    else:
+        get(update, context, no_hash, show_none=False)
 
 
 @connection_status
@@ -348,12 +561,52 @@ def clearall_btn(update: Update, context: CallbackContext):
             query.answer("Only owner of the chat can do this.")
         if member.status == "member":
             query.answer("You need to be admin to do this.")
+            
+@connection_status
+@user_admin
+def private_note(update: Update, context: CallbackContext):
+	args = context.args
+	chat = update.effective_chat  # type: Optional[Chat]
+	user = update.effective_user  # type: Optional[User]
+	conn = 1
+	if conn == 2:
+		chat_id = conn
+		chat_name = dispatcher.context.bot.getChat(conn).title
+	else:
+		chat_id = update.effective_chat.id
+		if chat.type == "private":
+			chat_name = chat.title
+		else:
+			chat_name = chat.title
+
+	if len(args) >= 1:
+		if args[0] in ("yes", "on", "ya"):
+			if len(args) >= 2:
+				if args[1] == "del":
+					sql.private_note(str(chat_id), True, True)
+					send_message(update.effective_message, "Private Note is * activated *, when a user retrieves a note, the note message will be sent to the PM.", parse_mode="markdown")
+				else:
+					sql.private_note(str(chat_id), True, False)
+					send_message(update.effective_message, "Private Note is * activated *, when a user retrieves a note, a note message will be sent to the PM.", parse_mode="markdown")
+			else:
+				sql.private_note(str(chat_id), True, False)
+				send_message(update.effective_message, "Private Note is * activated *, when a user retrieves a note, a note message will be sent to the PM.", parse_mode="markdown")
+		elif args[0] in ("no", "off"):
+			sql.private_note(str(chat_id), False, False)
+			send_message(update.effective_message, "Private Note is * deactivated *, note messages will be sent to the group.", parse_mode="markdown")
+		else:
+			send_message(update.effective_message, "I understand only 'yes', or 'no'.")
+	else:
+		is_private, is_delete = sql.get_private_note(chat_id)
+		print(is_private, is_delete)
+		send_message(update.effective_message, "Private Note Settings at {}: *{}*{}".format(chat_name, "Enabled" if is_private else "Disabled", " - *Hash will be deleted*" if is_delete else ""), parse_mode="markdown")
 
 
 @connection_status
 def list_notes(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     note_list = sql.get_all_chat_notes(chat_id)
+    is_private, is_delete = sql.get_private_note(chat_id)
     notes = len(note_list) + 1
     msg = "Get note by `/notenumber` or `#notename` \n\n  *ID*    *Note* \n"
     for note_id, note in zip(range(1, notes), note_list):
@@ -368,11 +621,47 @@ def list_notes(update: Update, context: CallbackContext):
 
     if not note_list:
         update.effective_message.reply_text("No notes in this chat!")
-
+    elif is_private:
+        buttons = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        text="Click me!",
+                        url=f"http://t.me/YuiiChanBot?start=allnotes_{chat_id}",
+                    )
+                ]
+            ]
+        )
+        update.effective_message.reply_text(
+            f"Tap here to view all notes in this chat.",
+            parse_mode=ParseMode.MARKDOWN,
+            disable_web_page_preview=True,
+            reply_markup=buttons,
+        )
+        return
     elif len(msg) != 0:
         update.effective_message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
-
+def lst_notes(bot, update, chat_id):
+    chat = bot.getChat(chat_id)
+    msg = f"*List of Notes in {chat.title}:*\n"
+    note_list = sql.get_all_chat_notes(chat_id)
+    for note in note_list:
+        note_name = f"• [{note.name}](http://t.me/YuiiChanBot?start=notes_{chat_id}={note.name})\n"
+        if len(msg) + len(note_name) > MAX_MESSAGE_LENGTH:
+            update.effective_message.reply_text(msg, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+            msg = ""
+        msg += note_name
+    if not note_list:
+        update.effective_message.reply_text(
+            "No notes in *{}*!".format(chat.title), parse_mode=ParseMode.MARKDOWN
+        )
+    elif len(msg) != 0:
+        msg += "\nYou can retrieve these notes by tapping on the notename."
+        update.effective_message.reply_text(
+            msg.format(chat.title), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True
+        )
+        
 def __import_data__(chat_id, data):
     failures = []
     for notename, notedata in data.get("extra", {}).items():
@@ -504,6 +793,7 @@ GET_HANDLER = CommandHandler("get", cmd_get, run_async=True)
 HASH_GET_HANDLER = MessageHandler(Filters.regex(r"^#[^\s]+"), hash_get, run_async=True)
 SLASH_GET_HANDLER = MessageHandler(Filters.regex(r"^/\d+$"), slash_get, run_async=True)
 SAVE_HANDLER = CommandHandler("save", save, run_async=True)
+PMNOTE_HANDLER = CommandHandler("privatenote", private_note, run_async=True)
 DELETE_HANDLER = CommandHandler("clear", clear, run_async=True)
 
 LIST_HANDLER = DisableAbleCommandHandler(
@@ -519,5 +809,6 @@ dispatcher.add_handler(LIST_HANDLER)
 dispatcher.add_handler(DELETE_HANDLER)
 dispatcher.add_handler(HASH_GET_HANDLER)
 dispatcher.add_handler(SLASH_GET_HANDLER)
+dispatcher.add_handler(PMNOTE_HANDLER)
 dispatcher.add_handler(CLEARALL)
 dispatcher.add_handler(CLEARALL_BTN)
