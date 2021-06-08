@@ -17,6 +17,11 @@ RUN : \
     && rm -rf /var/lib/apt/lists/* \
     && :
 
+RUN set -xe \
+    && apt-get update \
+    && apt-get install python-pip
+RUN pip install --upgrade pip
+
 # Cloning the repo
 RUN git clone https://github.com/rshero/YuiiChan /root/yui
 WORKDIR /root/yui
