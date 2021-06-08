@@ -40,7 +40,6 @@ from tg_bot import (
     kp,
     StartTime,
 )
-
 # needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from tg_bot.modules import ALL_MODULES
@@ -48,6 +47,7 @@ from tg_bot.modules.helper_funcs.chat_status import is_user_admin
 from tg_bot.modules.helper_funcs.misc import paginate_modules
 from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.afk import get_readable_time
+from tg_bot.modules.notes import private_get, lst_notes
 from tg_bot.modules.language import gs
 
 PM_START_TEXT = """
@@ -170,11 +170,22 @@ def start(update: Update, context: CallbackContext):
     """
     chat = update.effective_chat
     args = context.args
+    bot = context.bot
     uptime = get_readable_time((time.time() - StartTime))
     if update.effective_chat.type == "private":
         if len(args) >= 1:
             if args[0].lower() == "help":
                 send_help(update.effective_chat.id, HELP_STRINGS)
+            if args[0].startswith("notes"):
+              message = update.effective_message
+              send_id = (update.effective_user).id
+              stuff = args[0].split("_", 1)
+              chat_id = stuff[1].split("=")[0]
+              note_name = stuff[1].split("=")[1]
+              private_get(context=context, update=update, notename=note_name, chat_id=int(chat_id), u=int(send_id), m=message)
+            if args[0].startswith("allnotes"):
+              stuff = args[0].split("_")
+              lst_notes(bot, update, int(stuff[1]))
             elif args[0].lower() == "markdownhelp":
                 IMPORTED["extras"].markdown_help_sender(update)
             elif args[0].lower().startswith("stngs_"):
@@ -647,7 +658,7 @@ def main():
         log.info(
             f"Yuii started, Using long polling. | BOT: [@{dispatcher.bot.username}]"
         )
-        updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=True)
+        updater.start_polling(allowed_updates=Update.ALL_TYPES, timeout=15, read_latency=4, drop_pending_updates=True)
     if len(argv) not in (1, 3, 4):
         telethn.disconnect()
     else:
