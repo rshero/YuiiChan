@@ -29,7 +29,7 @@ The Support group can be reached out to at [Yuii Chan Club](https://t.me/yuiicha
 # How to setup
 
 - `git clone https://github.com/rshero/YuiiChan`
-- `cd YuiChant`
+- `cd YuiiChan`
 - `cp sample_config.ini config.ini`
 - *Fill in all the vars*
 - `pip3 install -U -r requirements.txt`
